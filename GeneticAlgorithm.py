@@ -4,16 +4,16 @@ import matplotlib.pyplot as plt
 class GeneticAlgorithm:
     def __init__(self, vehicles, locations, shifts, population_size=400, generations=300, rest_period=10, patrol_time=5):
         self.vehicles = vehicles
-        self.locations = locations + 2  # Including depots
+        self.locations = locations + 2
         self.shifts = shifts
         self.population_size = population_size
         self.generations = generations
         self.patrol_time = patrol_time
         self.rest_period = rest_period
-        self.shift_lengths = [119] * self.shifts  # Fixed shift length
+        self.shift_lengths = [119] * self.shifts
         self.distance_matrix = self.generate_distance_matrix()
         self.population = self.initialize_population()
-        self.mutation_rate = 0.1  # Initial mutation rate
+        self.mutation_rate = 0.1 
 
     def generate_distance_matrix(self):
         return [[random.randint(10, 20) for _ in range(102)] for _ in range(102)]
@@ -100,7 +100,6 @@ class GeneticAlgorithm:
                 best_fitness = current_best_fitness
                 best_solution = self.population[0]
 
-            # Dynamic mutation rate adjustment
             if generation > 0 and best_fitnesses[-1] == best_fitnesses[-2]:
                 self.mutation_rate = min(1.0, self.mutation_rate + 0.01)
             else:
