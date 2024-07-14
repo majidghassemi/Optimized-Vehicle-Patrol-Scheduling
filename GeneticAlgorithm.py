@@ -143,3 +143,7 @@ for shift in best_overall_solution:
         print("  Timing:")
         for loc, time in timings:
             print(f"    Location {loc} at time {time} minutes")
+
+
+
+# Genetic Dynamic VPS (GDVPS)
