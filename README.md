@@ -1,2 +1,1 @@
-# Vehicles-Patrol-Scheduling
-This is the repository for the Vehicles Patrol Scheduling solved by novel Heuristic, Genetic Algorithm, and Optimization approaches
+# Optimized Vehicle Patrol Scheduling: Balancing Efficiency and Coverage in Urban Safety Operations
