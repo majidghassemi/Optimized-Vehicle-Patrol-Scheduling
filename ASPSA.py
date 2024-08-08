@@ -2,7 +2,7 @@ import random
 import matplotlib.pyplot as plt
 
 class HVSP:
-    def __init__(self, vehicles=5, total_locations=100, shifts=4, patrol_time=5, rest_period=10, shift_lengths=None, iterations=100):
+    def __init__(self, vehicles=10, total_locations=250, shifts=6, patrol_time=5, rest_period=10, shift_lengths=None, iterations=100):
         assert vehicles > 0, "Number of vehicles must be positive"
         assert total_locations > 1, "Number of locations must be greater than 1"
         assert shifts > 0, "Number of shifts must be positive"
@@ -18,9 +18,26 @@ class HVSP:
         self.rest_period = rest_period
         self.shift_lengths = shift_lengths if shift_lengths else [120] * shifts
         self.iterations = iterations
+        self.graph = self.create_random_graph()
+
+    def create_random_graph(self):
+        graph = {i: {} for i in range(self.total_locations + 1)}
+        for i in range(self.total_locations + 1):
+            for j in range(i + 1, self.total_locations + 1):
+                if random.random() < 0.7:  # 60% chance that a path exists
+                    weight = random.randint(10, 20)
+                    graph[i][j] = weight
+                    graph[j][i] = weight
+        return graph
+
+    def get_travel_time(self, loc1, loc2):
+        if loc2 in self.graph[loc1]:
+            return self.graph[loc1][loc2]
+        else:
+            return float('inf')
 
     def needs_revisiting(self, current_time, location, last_visit_times, location_locks):
-        return (current_time - last_visit_times[location]) >= 30 and (location_locks[location] is None or location_locks[location] <= current_time)
+        return (current_time - last_visit_times[location]) >= 60 and (location_locks[location] is None or location_locks[location] <= current_time)
 
     def initialize_simulation(self):
         routes = {shift: {vehicle: [] for vehicle in range(self.vehicles)} for shift in range(self.shifts)}
@@ -54,28 +71,24 @@ class HVSP:
             if not possible_locations:
                 break
 
-            travel_time_to_next = random.randint(10, 20)
-            next_possible_time = current_time + travel_time_to_next + self.patrol_time
-
-            if next_possible_time + travel_time_to_next > end_time:
-                break
-
             random.shuffle(possible_locations)
             for loc in possible_locations:
-                travel_to_next = current_time + travel_time_to_next
-                stay_at_next = travel_to_next + self.patrol_time
-                if stay_at_next + travel_time_to_next <= end_time:
+                travel_time_to_next = self.get_travel_time(route[-1], loc)
+                next_possible_time = current_time + travel_time_to_next + self.patrol_time
+
+                if travel_time_to_next != float('inf') and next_possible_time + travel_time_to_next <= end_time:
                     route.append(loc)
                     visited_this_shift.add(loc)
-                    current_time = stay_at_next
+                    current_time = next_possible_time
                     timing_info[shift][vehicle].append((loc, current_time))
                     last_visit_times[loc] = current_time
                     location_locks[loc] = current_time + self.patrol_time
                     location_visits[loc].append((shift, vehicle, current_time))
                     break
 
-        if current_time + travel_time_to_next <= end_time:
-            current_time += travel_time_to_next
+        travel_time_to_last_depot = self.get_travel_time(route[-1], self.last_depot)
+        if current_time + travel_time_to_last_depot <= end_time:
+            current_time += travel_time_to_last_depot
         route.append(self.last_depot)
         timing_info[shift][vehicle].append((self.last_depot, current_time))
         routes[shift][vehicle] = route
@@ -174,7 +187,7 @@ class HVSP:
         plt.plot(range(1, self.iterations + 1), results, linestyle='-', color='b', label='Distinct Locations Visited')
         plt.plot(range(1, self.iterations + 1), best_results, linestyle='--', color='g', label='Best So Far')
         plt.plot(range(1, self.iterations + 1), mean_results, linestyle=':', color='r', label='Mean')
-        plt.title('Distinct Locations Visited per Iteration')
+        plt.title('Distinct Locations Visited per Iteration: AHBPS')
         plt.xlabel('Iteration')
         plt.ylabel('Distinct Locations Visited')
         plt.grid(True)
@@ -184,6 +197,3 @@ class HVSP:
 if __name__ == "__main__":
     hvsp = HVSP()
     hvsp.main()
-
-
-# Adaptive Heuristic-Based Patrol Scheduling (AHBPS)
