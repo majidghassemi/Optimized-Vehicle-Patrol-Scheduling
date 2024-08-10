@@ -1,8 +1,10 @@
 import random
 import matplotlib.pyplot as plt
+from datetime import datetime
 
 class HVSP:
-    def __init__(self, vehicles=10, total_locations=250, shifts=6, patrol_time=5, rest_period=10, shift_lengths=None, iterations=100):
+    def __init__(self, vehicles=1, total_locations=10, shifts=4, patrol_time=5, rest_period=10, shift_lengths=None, iterations=100):
+        # Validate parameters
         assert vehicles > 0, "Number of vehicles must be positive"
         assert total_locations > 1, "Number of locations must be greater than 1"
         assert shifts > 0, "Number of shifts must be positive"
@@ -18,34 +20,19 @@ class HVSP:
         self.rest_period = rest_period
         self.shift_lengths = shift_lengths if shift_lengths else [120] * shifts
         self.iterations = iterations
-        self.graph = self.create_random_graph()
-
-    def create_random_graph(self):
-        graph = {i: {} for i in range(self.total_locations + 1)}
-        for i in range(self.total_locations + 1):
-            for j in range(i + 1, self.total_locations + 1):
-                if random.random() < 0.7:  # 60% chance that a path exists
-                    weight = random.randint(10, 20)
-                    graph[i][j] = weight
-                    graph[j][i] = weight
-        return graph
-
-    def get_travel_time(self, loc1, loc2):
-        if loc2 in self.graph[loc1]:
-            return self.graph[loc1][loc2]
-        else:
-            return float('inf')
 
     def needs_revisiting(self, current_time, location, last_visit_times, location_locks):
-        return (current_time - last_visit_times[location]) >= 60 and (location_locks[location] is None or location_locks[location] <= current_time)
+        return (current_time - last_visit_times[location]) >= 30 and (location_locks[location] is None or location_locks[location] <= current_time)
 
     def initialize_simulation(self):
+        # Initialize structures to store routes, timings, and visits
         routes = {shift: {vehicle: [] for vehicle in range(self.vehicles)} for shift in range(self.shifts)}
         timing_info = {shift: {vehicle: [] for vehicle in range(self.vehicles)} for shift in range(self.shifts)}
         location_visits = {loc: [] for loc in range(1, self.total_locations)}
         shift_start_time = {vehicle: [0] for vehicle in range(self.vehicles)}
         shift_end_time = {vehicle: [0] for vehicle in range(self.vehicles)}
         
+        # Set the initial start and end times for the first shift
         for vehicle in range(self.vehicles):
             shift_start_time[vehicle][0] = 0
             shift_end_time[vehicle][0] = self.shift_lengths[0]
@@ -53,6 +40,7 @@ class HVSP:
         return routes, timing_info, location_visits, shift_start_time, shift_end_time
 
     def simulate_shift(self, shift, vehicle, last_visit_times, location_locks, shift_start_time, shift_end_time, timing_info, routes, location_visits):
+        # Update shift start and end times for shifts beyond the first
         if shift > 0:
             previous_end_time = timing_info[shift - 1][vehicle][-1][1]
             shift_start_time[vehicle].append(previous_end_time + self.rest_period)
@@ -66,29 +54,36 @@ class HVSP:
         timing_info[shift][vehicle].append((self.first_depot, current_time))
         
         while current_time + self.patrol_time <= end_time:
+            # Select possible locations to visit
             possible_locations = [loc for loc in range(1, self.last_depot)
                                   if self.needs_revisiting(current_time, loc, last_visit_times, location_locks) and loc not in visited_this_shift]
             if not possible_locations:
                 break
 
+            travel_time_to_next = random.randint(10, 20)
+            next_possible_time = current_time + travel_time_to_next + self.patrol_time
+
+            if next_possible_time + travel_time_to_next > end_time:
+                break
+
+            # Shuffle and select the next location to visit
             random.shuffle(possible_locations)
             for loc in possible_locations:
-                travel_time_to_next = self.get_travel_time(route[-1], loc)
-                next_possible_time = current_time + travel_time_to_next + self.patrol_time
-
-                if travel_time_to_next != float('inf') and next_possible_time + travel_time_to_next <= end_time:
+                travel_to_next = current_time + travel_time_to_next
+                stay_at_next = travel_to_next + self.patrol_time
+                if stay_at_next + travel_time_to_next <= end_time:
                     route.append(loc)
                     visited_this_shift.add(loc)
-                    current_time = next_possible_time
+                    current_time = stay_at_next
                     timing_info[shift][vehicle].append((loc, current_time))
                     last_visit_times[loc] = current_time
                     location_locks[loc] = current_time + self.patrol_time
                     location_visits[loc].append((shift, vehicle, current_time))
                     break
 
-        travel_time_to_last_depot = self.get_travel_time(route[-1], self.last_depot)
-        if current_time + travel_time_to_last_depot <= end_time:
-            current_time += travel_time_to_last_depot
+        # Add return to depot if time allows
+        if current_time + travel_time_to_next <= end_time:
+            current_time += travel_time_to_next
         route.append(self.last_depot)
         timing_info[shift][vehicle].append((self.last_depot, current_time))
         routes[shift][vehicle] = route
@@ -99,6 +94,7 @@ class HVSP:
         return len({loc for loc, visits in location_visits.items() if visits})
 
     def get_neighbors(self, solution):
+        # Generate neighbors by slightly modifying the current solution
         neighbors = []
         for shift in range(self.shifts):
             for vehicle in range(self.vehicles):
@@ -112,6 +108,7 @@ class HVSP:
     def run_simulation(self, last_visit_times, location_locks, is_detailed=False):
         routes, timing_info, location_visits, shift_start_time, shift_end_time = self.initialize_simulation()
 
+        # Initialize with a random solution
         for shift in range(self.shifts):
             for vehicle in range(self.vehicles):
                 last_visit_times, location_locks = self.simulate_shift(shift, vehicle, last_visit_times, location_locks,
@@ -159,18 +156,29 @@ class HVSP:
                     loc_name = f"Location {loc}" if loc != self.first_depot and loc != self.last_depot else f"Depot {loc}"
                     print(f"      {loc_name} at time {time} minutes")
 
+    def write_results_to_file(self, filename, vehicles, shifts, locations, rest_time, average_locations_visited):
+        with open(filename, 'a') as file:  # Open in append mode
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            file.write(f"Timestamp: {timestamp}\n")
+            file.write(f"{vehicles} cars, {shifts} shifts, {locations} locations, {rest_time} rest time => {average_locations_visited} locations were visited on average.\n")
+            file.write("-----\n")
+
     def main(self):
+        # Initialize detailed simulation state
         last_visit_times_detailed = {loc: float('-inf') for loc in range(1, self.total_locations)}
         location_locks_detailed = {loc: None for loc in range(1, self.total_locations)}
 
+        # Detailed simulation run
         self.run_simulation(last_visit_times_detailed, location_locks_detailed, is_detailed=True)
 
+        # Multiple simulation runs for plotting
         results = []
         for _ in range(self.iterations):
             last_visit_times = {loc: float('-inf') for loc in range(1, self.total_locations)}
             location_locks = {loc: None for loc in range(1, self.total_locations)}
             results.append(self.run_simulation(last_visit_times, location_locks))
 
+        # Compute the best and mean results
         best_results = []
         current_best = 0
         mean_results = []
@@ -183,17 +191,22 @@ class HVSP:
             cumulative_sum += result
             mean_results.append(cumulative_sum / (i + 1))
 
+        # Write results to file (appending)
+        self.write_results_to_file('results.txt', self.vehicles, self.shifts, self.total_locations, self.rest_period, sum(results) / len(results))
+
+        # Plotting
         plt.figure(figsize=(10, 5))
         plt.plot(range(1, self.iterations + 1), results, linestyle='-', color='b', label='Distinct Locations Visited')
         plt.plot(range(1, self.iterations + 1), best_results, linestyle='--', color='g', label='Best So Far')
         plt.plot(range(1, self.iterations + 1), mean_results, linestyle=':', color='r', label='Mean')
-        plt.title('Distinct Locations Visited per Iteration: AHBPS')
+        plt.title('Distinct Locations Visited per Iteration')
         plt.xlabel('Iteration')
         plt.ylabel('Distinct Locations Visited')
         plt.grid(True)
         plt.legend()
         plt.show()
 
+# Run the main function
 if __name__ == "__main__":
     hvsp = HVSP()
     hvsp.main()
