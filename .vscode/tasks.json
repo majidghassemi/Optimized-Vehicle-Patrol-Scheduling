@@ -19,6 +19,7 @@
         "/opt/ibm/ILOG/CPLEX_Studio2211/concert/lib/x86-64_linux/static_pic",
         "-L",
         "/opt/ibm/ILOG/CPLEX_Studio2211/cplex/lib/x86-64_linux/static_pic",
+        "-lilocplex",
         "-lconcert",
         "-lcplex",
         "-lm",
@@ -29,7 +30,7 @@
         "isDefault": true
       },
       "problemMatcher": ["$gcc"],
-      // "detail": "Generated task for building the C++ project with CPLEX."
+      "detail": "Generated task for building the C++ project with CPLEX."
     }
   ]
 }

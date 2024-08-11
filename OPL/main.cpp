@@ -31,7 +31,7 @@ int main() {
     scheduler.setCarsInitialLocations({0, 0});
     scheduler.setCarsBreakStartTime({50, 70});
     scheduler.setCarsBreakEndTime({60, 80});
-    scheduler.setResTime({5, 5});
+    scheduler.setResTime({9, 9});
     scheduler.run();
 
     return 0;
