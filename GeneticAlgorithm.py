@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 
 class GeneticAlgorithm:
-    def __init__(self, vehicles, locations, shifts=6, population_size=100, generations=100, rest_period=10, patrol_time=5, heuristic_file='results.txt'):
+    def __init__(self, vehicles, locations, shifts=6, population_size=200, generations=200, rest_period=10, patrol_time=5, heuristic_file='results.txt'):
         self.vehicles = vehicles
         self.locations = locations + 1  # Adding depot as a single start/end location
         self.shifts = shifts
@@ -12,8 +12,7 @@ class GeneticAlgorithm:
         self.generations = generations
         self.patrol_time = patrol_time
         self.rest_period = rest_period
-        self.shift_lengths = [720]  # Single shift with 720 minutes
-        self.edge_probability = 0.099  # Edge probability for the random network
+        self.shift_lengths = [119] * self.shifts
         self.distance_matrix = self.generate_distance_matrix()
         self.mutation_rate = 0.1
         self.elite_size = int(0.1 * self.population_size)
@@ -73,33 +72,17 @@ class GeneticAlgorithm:
         current_location = 0
         current_time = 0
         route_timings = [(current_location, current_time)]
-        visited_times = {depot: [current_time]}  # Store visit times as a list to track multiple visits
-
-        took_rest = False  # Track if the vehicle has taken a rest
+        visited_times = {0: current_time}
 
         while current_time < self.shift_lengths[shift]:
             next_location = random.randint(1, self.locations - 1)  # Ensure it's within the valid range
             travel_time = self.distance_matrix[current_location][next_location]
             arrival_time = current_time + travel_time + self.patrol_time
 
-            # Check revisit condition: no more than 10 times and with a gap of at least 30 minutes
-            if next_location in visited_times:
-                if len(visited_times[next_location]) >= 10:
-                    continue
-                if any(arrival_time - prev_time < 30 for prev_time in visited_times[next_location]):
-                    continue
+            if any(arrival_time == other_time for other_route in shift_routes.values() for loc, other_time in other_route if loc == next_location):
+                continue
 
-            # Check if returning to depot for a mandatory rest
-            if not took_rest and arrival_time + self.distance_matrix[next_location][depot] <= self.shift_lengths[shift] - 10:
-                rest_time = random.randint(10, 30)
-                route.append(next_location)
-                route_timings.append((next_location, arrival_time))
-                current_time = arrival_time + rest_time + self.distance_matrix[next_location][depot]
-                route.append(depot)
-                route_timings.append((depot, current_time))
-                visited_times[next_location] = [arrival_time]
-                current_location = depot
-                took_rest = True
+            if next_location in visited_times and arrival_time - visited_times[next_location] <= 30:
                 continue
 
             if arrival_time + self.distance_matrix[next_location][0] > self.shift_lengths[shift]:
@@ -107,10 +90,7 @@ class GeneticAlgorithm:
 
             route.append(next_location)
             route_timings.append((next_location, arrival_time))
-            if next_location in visited_times:
-                visited_times[next_location].append(arrival_time)
-            else:
-                visited_times[next_location] = [arrival_time]
+            visited_times[next_location] = arrival_time
             current_location = next_location
             current_time = arrival_time
 
@@ -128,11 +108,13 @@ class GeneticAlgorithm:
             return self.fitness_cache[ind_str]
         
         unique_locations = set()
+        total_distance = 0
         for shift in individual:
             for vehicle in individual[shift]:
                 route, _ = individual[shift][vehicle]
                 unique_locations.update(route)
-        fitness = len(unique_locations)
+                total_distance += sum(self.distance_matrix[route[i]][route[i+1]] for i in range(len(route) - 1))
+        fitness = len(unique_locations) - (total_distance / 1000)
         self.fitness_cache[ind_str] = fitness
         return fitness
 
@@ -264,7 +246,7 @@ for vehicles, locations in VALID_PAIRS:
             best_overall_solution = best_solution
 
     # Calculate the average fitness across all 100 iterations
-    average_fitness_across_iterations = total_fitness_across_iterations / 50
+    average_fitness_across_iterations = total_fitness_across_iterations / 100
 
     # Write the results for this configuration to the file
     ga.write_results_to_file(results_filename, vehicles, locations, shifts, best_overall_fitness, average_fitness_across_iterations)
