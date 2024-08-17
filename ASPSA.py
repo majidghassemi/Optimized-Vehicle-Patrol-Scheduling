@@ -1,9 +1,8 @@
 import random
-import matplotlib.pyplot as plt
 from datetime import datetime
 
 class HVSP:
-    def __init__(self, vehicles=1, total_locations=10, shifts=4, patrol_time=5, rest_period=10, shift_lengths=None, iterations=100):
+    def __init__(self, vehicles=1, total_locations=10, shifts=6, patrol_time=5, rest_period=10, shift_lengths=None, iterations=100):
         # Validate parameters
         assert vehicles > 0, "Number of vehicles must be positive"
         assert total_locations > 1, "Number of locations must be greater than 1"
@@ -53,6 +52,8 @@ class HVSP:
         visited_this_shift = set()
         timing_info[shift][vehicle].append((self.first_depot, current_time))
         
+        travel_time_to_next = 0  # Initialize the variable
+
         while current_time + self.patrol_time <= end_time:
             # Select possible locations to visit
             possible_locations = [loc for loc in range(1, self.last_depot)
@@ -91,19 +92,9 @@ class HVSP:
         return last_visit_times, location_locks
 
     def evaluate_solution(self, location_visits):
-        return len({loc for loc, visits in location_visits.items() if visits})
-
-    def get_neighbors(self, solution):
-        # Generate neighbors by slightly modifying the current solution
-        neighbors = []
-        for shift in range(self.shifts):
-            for vehicle in range(self.vehicles):
-                for i in range(1, len(solution[shift][vehicle]) - 1):
-                    for j in range(i + 1, len(solution[shift][vehicle]) - 1):
-                        neighbor = {s: {v: list(solution[s][v]) for v in solution[s]} for s in solution}
-                        neighbor[shift][vehicle][i], neighbor[shift][vehicle][j] = neighbor[shift][vehicle][j], neighbor[shift][vehicle][i]
-                        neighbors.append(neighbor)
-        return neighbors
+        unique_visits = len({loc for loc, visits in location_visits.items() if visits})
+        total_visits = sum(len(visits) for visits in location_visits.values())
+        return unique_visits, total_visits
 
     def run_simulation(self, last_visit_times, location_locks, is_detailed=False):
         routes, timing_info, location_visits, shift_start_time, shift_end_time = self.initialize_simulation()
@@ -115,36 +106,16 @@ class HVSP:
                                                                        shift_start_time, shift_end_time, timing_info,
                                                                        routes, location_visits)
 
-        current_solution = routes
-        current_score = self.evaluate_solution(location_visits)
-
-        # Hill climbing process
-        while True:
-            neighbors = self.get_neighbors(current_solution)
-            best_neighbor = None
-            best_score = current_score
-
-            for neighbor in neighbors:
-                neighbor_score = self.evaluate_solution(location_visits)
-                if neighbor_score > best_score:
-                    best_neighbor = neighbor
-                    best_score = neighbor_score
-
-            if best_score <= current_score:
-                break
-
-            current_solution = best_neighbor
-            current_score = best_score
-
-        total_unique_locations_visited = current_score
+        unique_locations_visited, total_visits = self.evaluate_solution(location_visits)
 
         if is_detailed:
-            self.print_detailed_info(total_unique_locations_visited, current_solution, timing_info)
+            self.print_detailed_info(unique_locations_visited, total_visits, routes, timing_info)
 
-        return total_unique_locations_visited
+        return unique_locations_visited, total_visits
 
-    def print_detailed_info(self, total_unique_locations_visited, routes, timing_info):
-        print(f"Total distinct locations visited (excluding depots): {total_unique_locations_visited}")
+    def print_detailed_info(self, unique_locations_visited, total_visits, routes, timing_info):
+        print(f"Total distinct locations visited (excluding depots): {unique_locations_visited}")
+        print(f"Total visits (including revisits): {total_visits}")
         for vehicle in range(self.vehicles):
             print(f"Vehicle {vehicle}:")
             for shift in range(self.shifts):
@@ -156,55 +127,48 @@ class HVSP:
                     loc_name = f"Location {loc}" if loc != self.first_depot and loc != self.last_depot else f"Depot {loc}"
                     print(f"      {loc_name} at time {time} minutes")
 
-    def write_results_to_file(self, filename, vehicles, shifts, locations, rest_time, average_locations_visited):
+    def write_results_to_file(self, filename, vehicles, shifts, locations, rest_time, average_unique, average_total):
         with open(filename, 'a') as file:  # Open in append mode
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             file.write(f"Timestamp: {timestamp}\n")
-            file.write(f"{vehicles} cars, {shifts} shifts, {locations} locations, {rest_time} rest time => {average_locations_visited} locations were visited on average.\n")
+            file.write(f"{vehicles} vehicles, {shifts} shifts, {locations} locations, {rest_time} rest time => "
+                       f"Average Unique Locations Visited: {average_unique}, Average Total Visits: {average_total}.\n")
             file.write("-----\n")
 
     def main(self):
-        # Initialize detailed simulation state
+        # List of (vehicles, locations) pairs to test
+        test_cases = [
+            (5, 100), (5, 200), (5, 300), (8, 100), (8, 200), (8, 300), (8, 400), (8, 500), (10, 100), (10, 200), (10, 300), (10, 400), (10, 500), 
+            (10, 750), (10, 1000), (12, 100), (12, 200), (12, 300), (12, 400), (12, 500), 
+            (12, 750), (12, 1000), (15, 200),(15, 300),(15, 400), (15, 500), 
+            (15, 750), (15, 1000), (20, 500), (20, 750), (20, 1000)
+]
+
+        for vehicles, locations in test_cases:
+            self.vehicles = vehicles
+            self.total_locations = locations
+            self.last_depot = locations
+
+            # Multiple simulation runs for statistics
+            unique_results = []
+            total_results = []
+            for _ in range(self.iterations):
+                last_visit_times = {loc: float('-inf') for loc in range(1, self.total_locations)}
+                location_locks = {loc: None for loc in range(1, self.total_locations)}
+                unique, total = self.run_simulation(last_visit_times, location_locks)
+                unique_results.append(unique)
+                total_results.append(total)
+
+            # Compute and write results to file (appending)
+            average_unique = sum(unique_results) / len(unique_results)
+            average_total = sum(total_results) / len(total_results)
+            self.write_results_to_file('test.txt', self.vehicles, self.shifts, self.total_locations, self.rest_period, average_unique, average_total)
+
+        # Detailed simulation run for the final test case
         last_visit_times_detailed = {loc: float('-inf') for loc in range(1, self.total_locations)}
         location_locks_detailed = {loc: None for loc in range(1, self.total_locations)}
 
-        # Detailed simulation run
-        self.run_simulation(last_visit_times_detailed, location_locks_detailed, is_detailed=True)
-
-        # Multiple simulation runs for plotting
-        results = []
-        for _ in range(self.iterations):
-            last_visit_times = {loc: float('-inf') for loc in range(1, self.total_locations)}
-            location_locks = {loc: None for loc in range(1, self.total_locations)}
-            results.append(self.run_simulation(last_visit_times, location_locks))
-
-        # Compute the best and mean results
-        best_results = []
-        current_best = 0
-        mean_results = []
-        cumulative_sum = 0
-
-        for i, result in enumerate(results):
-            if result > current_best:
-                current_best = result
-            best_results.append(current_best)
-            cumulative_sum += result
-            mean_results.append(cumulative_sum / (i + 1))
-
-        # Write results to file (appending)
-        self.write_results_to_file('results.txt', self.vehicles, self.shifts, self.total_locations, self.rest_period, sum(results) / len(results))
-
-        # Plotting
-        plt.figure(figsize=(10, 5))
-        plt.plot(range(1, self.iterations + 1), results, linestyle='-', color='b', label='Distinct Locations Visited')
-        plt.plot(range(1, self.iterations + 1), best_results, linestyle='--', color='g', label='Best So Far')
-        plt.plot(range(1, self.iterations + 1), mean_results, linestyle=':', color='r', label='Mean')
-        plt.title('Distinct Locations Visited per Iteration')
-        plt.xlabel('Iteration')
-        plt.ylabel('Distinct Locations Visited')
-        plt.grid(True)
-        plt.legend()
-        plt.show()
+        unique_locations_visited, total_visits = self.run_simulation(last_visit_times_detailed, location_locks_detailed, is_detailed=True)
 
 # Run the main function
 if __name__ == "__main__":
