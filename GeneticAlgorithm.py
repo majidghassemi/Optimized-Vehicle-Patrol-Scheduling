@@ -3,13 +3,10 @@ import numpy as np
 import re
 from datetime import datetime
 
-# Define the number of locations
-NUM_LOCATIONS = 100
-
 class GeneticAlgorithm:
-    def __init__(self, vehicles, locations, shifts, population_size=200, generations=150, rest_period=10, patrol_time=5):
+    def __init__(self, vehicles, locations, shifts=6, population_size=100, generations=100, rest_period=10, patrol_time=5, heuristic_file='results.txt'):
         self.vehicles = vehicles
-        self.locations = locations + 2  # Adding start and end locations
+        self.locations = locations + 1  # Adding depot as a single start/end location
         self.shifts = shifts
         self.population_size = population_size
         self.generations = generations
@@ -19,16 +16,47 @@ class GeneticAlgorithm:
         self.distance_matrix = self.generate_distance_matrix()
         self.mutation_rate = 0.1
         self.elite_size = int(0.1 * self.population_size)
-        self.tournament_size = 5
+        self.tournament_size = max(2, int(0.05 * self.locations))  # Dynamic tournament size based on number of locations
+        self.heuristic_solutions = self.load_heuristic_solutions(heuristic_file)
         self.population = self.initialize_population()
         self.fitness_cache = {}
 
     def generate_distance_matrix(self):
         return np.random.randint(10, 20, size=(self.locations, self.locations))
 
+    def load_heuristic_solutions(self, heuristic_file):
+        heuristic_solutions = {}
+        with open(heuristic_file, 'r') as file:
+            lines = file.readlines()
+            for i in range(0, len(lines), 2):  # Assuming each pair of lines corresponds to a scenario
+                match = re.search(r'(\d+) vehicles, (\d+) shifts, (\d+) locations', lines[i])
+                if match:
+                    vehicles = int(match.group(1))
+                    locations = int(match.group(3))
+                    key = (vehicles, locations)
+                    avg_unique_locations = float(re.search(r'Average Unique Locations Visited: (\d+\.?\d*)', lines[i]).group(1))
+                    heuristic_solutions[key] = avg_unique_locations
+        return heuristic_solutions
+
     def initialize_population(self):
         population = []
-        for _ in range(self.population_size):
+        heuristic_key = (self.vehicles, self.locations - 1)
+        if (self.vehicles, self.locations - 1) in self.heuristic_solutions:
+            # Placeholder logic to incorporate heuristic-based individuals
+            for _ in range(min(10, self.population_size)):  # Assume 10 individuals based on heuristic
+                individual = {}
+                for shift in range(self.shifts):
+                    shift_routes = {vehicle: [] for vehicle in range(self.vehicles)}
+                    for vehicle in range(self.vehicles):
+                        # For simplicity, let's say the heuristic gave us a number of unique locations, we can create routes based on that
+                        num_locations = int(self.heuristic_solutions[heuristic_key])
+                        route = [0] + random.sample(range(1, self.locations), num_locations) + [0]
+                        timings = [(loc, 0) for loc in route]  # Dummy timings
+                        individual[shift] = {vehicle: (route, timings)}
+                population.append(individual)
+
+        remaining_population_size = self.population_size - len(population)
+        for _ in range(remaining_population_size):
             individual = {}
             for shift in range(self.shifts):
                 shift_routes = {vehicle: [] for vehicle in range(self.vehicles)}
@@ -36,17 +64,18 @@ class GeneticAlgorithm:
                 for vehicle in range(self.vehicles):
                     shift_routes[vehicle] = individual[shift][vehicle][1]
             population.append(individual)
+
         return population
 
     def create_feasible_route(self, shift, shift_routes):
-        route = [0]  # Starting point
+        route = [0]  # Depot is the starting point
         current_location = 0
         current_time = 0
         route_timings = [(current_location, current_time)]
         visited_times = {0: current_time}
 
         while current_time < self.shift_lengths[shift]:
-            next_location = random.randint(1, self.locations - 2)  # Ensure it's within the valid range
+            next_location = random.randint(1, self.locations - 1)  # Ensure it's within the valid range
             travel_time = self.distance_matrix[current_location][next_location]
             arrival_time = current_time + travel_time + self.patrol_time
 
@@ -56,7 +85,7 @@ class GeneticAlgorithm:
             if next_location in visited_times and arrival_time - visited_times[next_location] <= 30:
                 continue
 
-            if arrival_time + self.distance_matrix[next_location][self.locations - 1] > self.shift_lengths[shift]:
+            if arrival_time + self.distance_matrix[next_location][0] > self.shift_lengths[shift]:
                 break
 
             route.append(next_location)
@@ -65,11 +94,11 @@ class GeneticAlgorithm:
             current_location = next_location
             current_time = arrival_time
 
-        # Add the end location
-        if current_location != self.locations - 1 and current_time + self.distance_matrix[current_location][self.locations - 1] <= self.shift_lengths[shift]:
-            route.append(self.locations - 1)
-            current_time += self.distance_matrix[current_location][self.locations - 1]
-            route_timings.append((self.locations - 1, current_time))
+        # Return to the depot at the end
+        if current_location != 0 and current_time + self.distance_matrix[current_location][0] <= self.shift_lengths[shift]:
+            route.append(0)
+            current_time += self.distance_matrix[current_location][0]
+            route_timings.append((0, current_time))
 
         return (route, route_timings)
 
@@ -92,12 +121,18 @@ class GeneticAlgorithm:
     def crossover(self, parent1, parent2):
         child = {}
         for shift in range(self.shifts):
-            child[shift] = {vehicle: (None, None) for vehicle in range(self.vehicles)}
+            child[shift] = {}
             for vehicle in range(self.vehicles):
                 if random.random() > 0.5:
-                    child[shift][vehicle] = parent1[shift][vehicle]
+                    if vehicle in parent1[shift]:
+                        child[shift][vehicle] = parent1[shift][vehicle]
                 else:
-                    child[shift][vehicle] = parent2[shift][vehicle]
+                    if vehicle in parent2[shift]:
+                        child[shift][vehicle] = parent2[shift][vehicle]
+            # Ensure that all vehicles are accounted for, filling in missing ones with default routes if needed
+            for vehicle in range(self.vehicles):
+                if vehicle not in child[shift]:
+                    child[shift][vehicle] = self.create_feasible_route(shift, {})
         return child
 
     def mutate(self, individual):
@@ -148,7 +183,7 @@ class GeneticAlgorithm:
             else:
                 stagnation_count += 1
 
-            if stagnation_count >= 10:  # Early termination if no improvement for 10 generations
+            if stagnation_count >= 20:  # Early termination if no improvement for 10 generations
                 print(f"Terminating early at generation {generation} due to lack of improvement.")
                 break
 
@@ -166,37 +201,36 @@ class GeneticAlgorithm:
             file.write(f"{vehicles} vehicles, {shifts} shifts, {locations} locations => Best fitness (distinct locations visited): {best_fitness}, Average fitness: {average_fitness}\n")
             file.write("-----\n")
 
-# Function to parse the text file and extract parameters
-def parse_file(file_path):
-    instances = []
-    with open(file_path, 'r') as file:
-        for line in file:
-            match = re.search(r"(\d+) cars?, (\d+) shifts?, (\d+) locations?,", line)
-            if match:
-                cars = int(match.group(1))
-                shifts = int(match.group(2))
-                locations = int(match.group(3))
-                instances.append((cars, shifts, locations))
-    return instances
-
-# Path to the text file containing the instances
-file_path = './results.txt'
-
-# Parse the file to get the instances
-instances = parse_file(file_path)
+    def print_travel_details(self, solution):
+        for shift in solution:
+            print(f"Shift {shift + 1}:")
+            for vehicle, (route, timings) in solution[shift].items():
+                print(f"  Vehicle {vehicle + 1}:")
+                for loc, time in timings:
+                    print(f"    Location {loc}, Time {time}")
+                print("")
 
 # File to save all the results
-results_filename = 'ga_results_automated_from_file.txt'
+results_filename = 'GDVPS.txt'
 
-# Iterate over all instances and run the algorithm
-for cars, shifts, locations in instances:
+# Define the valid pairs of (vehicles, locations)
+VALID_PAIRS = [
+            # (5, 100), (5, 200), (5, 300), (8, 100), (8, 200), (8, 300), (8, 400), (8, 500), (10, 100), (10, 200), (10, 300), (10, 400), (10, 500), 
+            # (10, 750), (10, 1000), (12, 100), (12, 200), (12, 300), (12, 400), (12, 500), 
+            # (12, 750), (12, 1000), (15, 200),(15, 300),(15, 400), (15, 500), 
+            (15, 750), (15, 1000), (20, 500), (20, 750), (20, 1000)
+]
+
+# Iterate over all valid pairs and run the algorithm
+for vehicles, locations in VALID_PAIRS:
+    shifts = 6  # Set number of shifts to 6
     best_overall_solution = None
     best_overall_fitness = 0
     total_fitness_across_iterations = 0
     max_fitness_so_far = float('-inf')
 
     for i in range(100):
-        ga = GeneticAlgorithm(vehicles=cars, locations=locations, shifts=shifts)
+        ga = GeneticAlgorithm(vehicles=vehicles, locations=locations, shifts=shifts)
         best_solution, fitness, best_fitnesses = ga.run()
 
         # Update the maximum fitness so far
@@ -215,7 +249,12 @@ for cars, shifts, locations in instances:
     average_fitness_across_iterations = total_fitness_across_iterations / 100
 
     # Write the results for this configuration to the file
-    ga.write_results_to_file(results_filename, cars, locations, shifts, best_overall_fitness, average_fitness_across_iterations)
+    ga.write_results_to_file(results_filename, vehicles, locations, shifts, best_overall_fitness, average_fitness_across_iterations)
 
-# Inform user that the process is complete
-print("Automated Genetic Algorithm tests completed. Results saved to file.")
+    # Print the details of each travel for each car in the best overall solution
+    print(f"Details for {vehicles} vehicles and {locations} locations:")
+    ga.print_travel_details(best_overall_solution)
+    print("\n" + "-"*50 + "\n")
+
+# Inform the user that the process is complete
+print("Automated Genetic Algorithm tests for all valid pairs completed. Results saved to file.")
