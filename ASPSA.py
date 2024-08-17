@@ -182,7 +182,7 @@ class HVSP:
             # Compute and write results to file (appending)
             average_unique = sum(unique_results) / len(unique_results)
             average_total = sum(total_results) / len(total_results)
-            self.write_results_to_file('results.txt', self.vehicles, self.shifts, self.total_locations, self.rest_period, average_unique, average_total)
+            self.write_results_to_file('test.txt', self.vehicles, self.shifts, self.total_locations, self.rest_period, average_unique, average_total)
 
         # Detailed simulation run for the final test case
         last_visit_times_detailed = {loc: float('-inf') for loc in range(1, self.total_locations)}
