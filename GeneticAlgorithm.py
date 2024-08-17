@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 
 class GeneticAlgorithm:
-    def __init__(self, vehicles, locations, shifts=6, population_size=200, generations=200, rest_period=10, patrol_time=5, heuristic_file='results.txt'):
+    def __init__(self, vehicles, locations, shifts=6, population_size=100, generations=100, rest_period=10, patrol_time=5, heuristic_file='results.txt'):
         self.vehicles = vehicles
         self.locations = locations + 1  # Adding depot as a single start/end location
         self.shifts = shifts
@@ -183,8 +183,11 @@ class GeneticAlgorithm:
             else:
                 stagnation_count += 1
 
-            if stagnation_count >= 20:  # Early termination if no improvement for 10 generations
-                print(f"Terminating early at generation {generation} due to lack of improvement.")
+            # Log generation and stagnation
+            print(f"Generation {generation + 1}, Best Fitness: {current_best_fitness}, Stagnation Count: {stagnation_count}")
+
+            if stagnation_count >= 10:  # Early termination if no improvement for 10 generations
+                print(f"Terminating early at generation {generation + 1} due to lack of improvement.")
                 break
 
             if generation > 0 and best_fitnesses[-1] == best_fitnesses[-2]:
@@ -215,10 +218,7 @@ results_filename = 'GDVPS.txt'
 
 # Define the valid pairs of (vehicles, locations)
 VALID_PAIRS = [
-            # (5, 100), (5, 200), (5, 300), (8, 100), (8, 200), (8, 300), (8, 400), (8, 500), (10, 100), (10, 200), (10, 300), (10, 400), (10, 500), 
-            # (10, 750), (10, 1000), (12, 100), (12, 200), (12, 300), (12, 400), (12, 500), 
-            # (12, 750), (12, 1000), (15, 200),(15, 300),(15, 400), (15, 500), 
-            (15, 750), (15, 1000), (20, 500), (20, 750), (20, 1000)
+            (20, 1000)
 ]
 
 # Iterate over all valid pairs and run the algorithm
@@ -229,7 +229,7 @@ for vehicles, locations in VALID_PAIRS:
     total_fitness_across_iterations = 0
     max_fitness_so_far = float('-inf')
 
-    for i in range(100):
+    for i in range(10):
         ga = GeneticAlgorithm(vehicles=vehicles, locations=locations, shifts=shifts)
         best_solution, fitness, best_fitnesses = ga.run()
 
@@ -246,7 +246,7 @@ for vehicles, locations in VALID_PAIRS:
             best_overall_solution = best_solution
 
     # Calculate the average fitness across all 100 iterations
-    average_fitness_across_iterations = total_fitness_across_iterations / 100
+    average_fitness_across_iterations = total_fitness_across_iterations / 10
 
     # Write the results for this configuration to the file
     ga.write_results_to_file(results_filename, vehicles, locations, shifts, best_overall_fitness, average_fitness_across_iterations)
