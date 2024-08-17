@@ -1,9 +1,9 @@
 import random
-import numpy as np
 from datetime import datetime
 
 class HVSP:
-    def __init__(self, vehicles, total_locations, shift_duration=720, patrol_time=5, max_rest_time=20, edge_probability=0.099, iterations=30):
+    def __init__(self, vehicles=1, total_locations=10, shifts=6, patrol_time=5, rest_period=10, shift_lengths=None, iterations=100):
+        # Validate parameters
         assert vehicles > 0, "Number of vehicles must be positive"
         assert total_locations > 1, "Number of locations must be greater than 1"
         assert shift_duration > 0, "Shift duration must be positive"
@@ -58,24 +58,14 @@ class HVSP:
 
         route = [self.depot]
         visited_this_shift = set()
-        timing_info[vehicle].append((self.depot, current_time))
+        timing_info[shift][vehicle].append((self.first_depot, current_time))
         
-        print(f"[Vehicle {vehicle}] Starting shift with initial time {current_time}.")
+        travel_time_to_next = 0  # Initialize the variable
 
-        while current_time + self.patrol_time <= self.shift_duration:
-            if not rest_taken and all(rest_time is None or rest_time <= current_time for v, rest_time in self.vehicle_rest_time.items() if v != vehicle):
-                rest_time = random.randint(10, self.max_rest_time)
-                current_time += rest_time
-                self.vehicle_rest_time[vehicle] = current_time
-                rest_taken = True
-                print(f"[Vehicle {vehicle}] Taking rest for {rest_time} minutes. Current time: {current_time}.")
-
-            possible_locations = [
-                loc for loc in range(1, self.total_locations + 1)
-                if self.distance_matrix[route[-1]][loc] != np.inf
-                and self.needs_revisiting(current_time, loc, last_visit_times, location_locks, visit_counts)
-            ]
-
+        while current_time + self.patrol_time <= end_time:
+            # Select possible locations to visit
+            possible_locations = [loc for loc in range(1, self.last_depot)
+                                  if self.needs_revisiting(current_time, loc, last_visit_times, location_locks) and loc not in visited_this_shift]
             if not possible_locations:
                 print(f"[Vehicle {vehicle}] No more valid locations to visit.")
                 break
@@ -88,46 +78,54 @@ class HVSP:
                 print(f"[Vehicle {vehicle}] Not enough time to visit the next location. Ending shift.")
                 break
 
-            route.append(closest_location)
-            visited_this_shift.add(closest_location)
-            current_time = stay_at_next
-            timing_info[vehicle].append((closest_location, current_time))
-            last_visit_times[closest_location] = current_time
-            location_locks[closest_location] = current_time + self.patrol_time
-            location_visits[closest_location].append((vehicle, current_time))
-            visit_counts[closest_location] += 1
+            # Shuffle and select the next location to visit
+            random.shuffle(possible_locations)
+            for loc in possible_locations:
+                travel_to_next = current_time + travel_time_to_next
+                stay_at_next = travel_to_next + self.patrol_time
+                if stay_at_next + travel_time_to_next <= end_time:
+                    route.append(loc)
+                    visited_this_shift.add(loc)
+                    current_time = stay_at_next
+                    timing_info[shift][vehicle].append((loc, current_time))
+                    last_visit_times[loc] = current_time
+                    location_locks[loc] = current_time + self.patrol_time
+                    location_visits[loc].append((shift, vehicle, current_time))
+                    break
 
-            print(f"[Vehicle {vehicle}] Visited location {closest_location} at time {current_time}.")
+        # Add return to depot if time allows
+        if current_time + travel_time_to_next <= end_time:
+            current_time += travel_time_to_next
+        route.append(self.last_depot)
+        timing_info[shift][vehicle].append((self.last_depot, current_time))
+        routes[shift][vehicle] = route
 
-        if current_time + self.distance_matrix[route[-1]][self.depot] <= self.shift_duration:
-            current_time += self.distance_matrix[route[-1]][self.depot]
-        route.append(self.depot)
-        timing_info[vehicle].append((self.depot, current_time))
-        routes[vehicle] = route
+        return last_visit_times, location_locks
 
-        print(f"[Vehicle {vehicle}] Returning to depot at time {current_time}.")
-
-        return last_visit_times, location_locks, visit_counts
-
-    def evaluate_solution(self, visit_counts):
-        return sum(visit_counts.values())
+    def evaluate_solution(self, location_visits):
+        unique_visits = len({loc for loc, visits in location_visits.items() if visits})
+        total_visits = sum(len(visits) for visits in location_visits.values())
+        return unique_visits, total_visits
 
     def run_simulation(self, last_visit_times, location_locks, is_detailed=False):
-        routes, timing_info, location_visits, visit_counts = self.initialize_simulation()
-        for vehicle in range(self.vehicles):
-            print(f"--- Running simulation for vehicle {vehicle} ---")
-            last_visit_times, location_locks, visit_counts = self.simulate_shift(vehicle, last_visit_times, location_locks, timing_info,
-                                                                                routes, location_visits, visit_counts)
+        routes, timing_info, location_visits, shift_start_time, shift_end_time = self.initialize_simulation()
 
-        current_score = self.evaluate_solution(visit_counts)
+        # Initialize with a random solution
+        for shift in range(self.shifts):
+            for vehicle in range(self.vehicles):
+                last_visit_times, location_locks = self.simulate_shift(shift, vehicle, last_visit_times, location_locks,
+                                                                       shift_start_time, shift_end_time, timing_info,
+                                                                       routes, location_visits)
+
+        unique_locations_visited, total_visits = self.evaluate_solution(location_visits)
 
         if is_detailed:
-            self.print_detailed_info(current_score, routes, timing_info)
+            self.print_detailed_info(unique_locations_visited, total_visits, routes, timing_info)
 
-        print(f"Simulation complete. Total visits: {current_score}")
-        return current_score, routes, timing_info
+        return unique_locations_visited, total_visits
 
-    def print_detailed_info(self, total_visits, routes, timing_info):
+    def print_detailed_info(self, unique_locations_visited, total_visits, routes, timing_info):
+        print(f"Total distinct locations visited (excluding depots): {unique_locations_visited}")
         print(f"Total visits (including revisits): {total_visits}")
         for vehicle in range(self.vehicles):
             print(f"Vehicle {vehicle}:")
@@ -138,11 +136,12 @@ class HVSP:
                 loc_name = f"Location {loc}" if loc != self.depot else "Depot"
                 print(f"      {loc_name} at time {time} minutes")
 
-    def write_results_to_file(self, filename, vehicles, locations, rest_time, average_visits, routes, timing_info):
-        with open(filename, 'a') as file:
+    def write_results_to_file(self, filename, vehicles, shifts, locations, rest_time, average_unique, average_total):
+        with open(filename, 'a') as file:  # Open in append mode
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             file.write(f"Timestamp: {timestamp}\n")
-            file.write(f"{vehicles} cars, {locations} locations, {rest_time} rest time => {average_visits} visits on average.\n")
+            file.write(f"{vehicles} vehicles, {shifts} shifts, {locations} locations, {rest_time} rest time => "
+                       f"Average Unique Locations Visited: {average_unique}, Average Total Visits: {average_total}.\n")
             file.write("-----\n")
             file.write(f"Detailed travel logs:\n")
             for vehicle in range(vehicles):
@@ -157,27 +156,39 @@ class HVSP:
         print(f"Results written to file for {vehicles} vehicles and {locations}.")
 
     def main(self):
-        valid_pairs = [
-            (1, 4), (1, 10), (1, 20), (2, 4), (2, 10), (2, 20), (2, 30), (3,10), (3, 20), (3, 30), (3, 50), (3, 75), (3, 100), (4, 20), (4,30),
-            (4, 50), (4, 75), (4, 100), (4, 125), (4, 150), (5, 50), (5, 75), (5, 100), (5, 125), (5, 150), (5, 175), (5, 200), (10, 100), (10, 150), (10, 200), (10, 250), (10, 300), 
-            (10, 400), (15, 150), (15, 200), (15, 300), (15, 400), (15, 500), (20, 200), (20, 300), (20, 400), (20, 500), (20, 750), (25, 500), (25, 750), (25, 1000), 
-            (30, 500), (30, 750), (30, 1000)
-        ]
+        # List of (vehicles, locations) pairs to test
+        test_cases = [
+            (5, 100), (5, 200), (5, 300), (8, 100), (8, 200), (8, 300), (8, 400), (8, 500), (10, 100), (10, 200), (10, 300), (10, 400), (10, 500), 
+            (10, 750), (10, 1000), (12, 100), (12, 200), (12, 300), (12, 400), (12, 500), 
+            (12, 750), (12, 1000), (15, 200),(15, 300),(15, 400), (15, 500), 
+            (15, 750), (15, 1000), (20, 500), (20, 750), (20, 1000)
+]
 
-        for vehicles, locations in valid_pairs:
-            print(f"Starting simulation for {vehicles} vehicles and {locations} locations.")
-            hvsp = HVSP(vehicles=vehicles, total_locations=locations)
-            results = []
-            for _ in range(hvsp.iterations):
-                result, routes, timing_info = hvsp.run_simulation(
-                    {loc: float('-inf') for loc in range(1, locations + 1)},
-                    {loc: None for loc in range(1, locations + 1)}
-                )
-                results.append(result)
+        for vehicles, locations in test_cases:
+            self.vehicles = vehicles
+            self.total_locations = locations
+            self.last_depot = locations
 
-            average_visits = sum(results) / len(results)
-            hvsp.write_results_to_file('AHBPS_large_instances_results_automated.txt', vehicles, locations, hvsp.max_rest_time, average_visits, routes, timing_info)
-            print(f"Finished simulation for {vehicles} vehicles and {locations} locations.")
+            # Multiple simulation runs for statistics
+            unique_results = []
+            total_results = []
+            for _ in range(self.iterations):
+                last_visit_times = {loc: float('-inf') for loc in range(1, self.total_locations)}
+                location_locks = {loc: None for loc in range(1, self.total_locations)}
+                unique, total = self.run_simulation(last_visit_times, location_locks)
+                unique_results.append(unique)
+                total_results.append(total)
+
+            # Compute and write results to file (appending)
+            average_unique = sum(unique_results) / len(unique_results)
+            average_total = sum(total_results) / len(total_results)
+            self.write_results_to_file('results.txt', self.vehicles, self.shifts, self.total_locations, self.rest_period, average_unique, average_total)
+
+        # Detailed simulation run for the final test case
+        last_visit_times_detailed = {loc: float('-inf') for loc in range(1, self.total_locations)}
+        location_locks_detailed = {loc: None for loc in range(1, self.total_locations)}
+
+        unique_locations_visited, total_visits = self.run_simulation(last_visit_times_detailed, location_locks_detailed, is_detailed=True)
 
 # Run the main function
 if __name__ == "__main__":
