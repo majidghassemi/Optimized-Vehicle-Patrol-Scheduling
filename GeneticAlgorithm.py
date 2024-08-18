@@ -2,9 +2,10 @@ import random
 import numpy as np
 import re
 from datetime import datetime
+import time  # Import the time module for tracking execution time
 
 class GeneticAlgorithm:
-    def __init__(self, vehicles, locations, shifts=6, population_size=100, generations=100, rest_period=10, patrol_time=5, heuristic_file='results.txt'):
+    def __init__(self, vehicles, locations, shifts=6, population_size=200, generations=150, rest_period=10, patrol_time=5, heuristic_file='./AHBPS_Run_Time_Large_Instance_Vehicles_Changes.txt'):
         self.vehicles = vehicles
         self.locations = locations + 1  # Adding depot as a single start/end location
         self.shifts = shifts
@@ -197,11 +198,13 @@ class GeneticAlgorithm:
 
         return best_solution, best_fitness, best_fitnesses
 
-    def write_results_to_file(self, filename, vehicles, locations, shifts, best_fitness, average_fitness):
+    def write_results_to_file(self, filename, vehicles, locations, shifts, best_fitness, average_fitness, execution_time=None):
         with open(filename, 'a') as file:  # Open in append mode
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             file.write(f"Timestamp: {timestamp}\n")
             file.write(f"{vehicles} vehicles, {shifts} shifts, {locations} locations => Best fitness (distinct locations visited): {best_fitness}, Average fitness: {average_fitness}\n")
+            if execution_time is not None:
+                file.write(f"Execution Time: {execution_time:.2f} seconds\n")
             file.write("-----\n")
 
     def print_travel_details(self, solution):
@@ -214,12 +217,23 @@ class GeneticAlgorithm:
                 print("")
 
 # File to save all the results
-results_filename = 'GDVPS.txt'
+results_filename = 'GDVPS_Run_Time_Large_Instance_Vehicles_Changes.txt'
 
 # Define the valid pairs of (vehicles, locations)
 VALID_PAIRS = [
-            (20, 1000)
+            # (5, 100), (5, 200), (5, 300), (8, 100), (8, 200), (8, 300), (8, 400), (8, 500), (10, 100), (10, 200), (10, 300), (10, 400), (10, 500), 
+            # (10, 750), (10, 1000), (12, 100), (12, 200), (12, 300), (12, 400), (12, 500), 
+            # (12, 750), (12, 1000), (15, 200),(15, 300), (15, 400), (15, 500), 
+            # (15, 750), (15, 1000), 
+            # (20, 500), (20, 750), (20, 1000)
+            # (10, 100), (10, 200), (10, 300), (10, 400), (10, 500), (10, 600), (10, 700), (10, 800), (10, 900), (10, 1000)
+            # (10, 100), (10, 200), (10, 300), (10, 400), (10, 500), (10, 600), (10, 700), (10, 800), (10, 900), (10, 1000),
+            (5, 200), (6, 200), (7, 200), (8, 200), (9, 200), (10, 200), (12, 200), (15, 200), (18, 200), (20, 200)
 ]
+# (10, 100), (10, 200), (10, 300), (10, 400), (10, 500), (10, 600), (10, 700), (10, 800), (10, 900), (10, 1000),
+
+# 
+
 
 # Iterate over all valid pairs and run the algorithm
 for vehicles, locations in VALID_PAIRS:
@@ -229,7 +243,10 @@ for vehicles, locations in VALID_PAIRS:
     total_fitness_across_iterations = 0
     max_fitness_so_far = float('-inf')
 
-    for i in range(10):
+    # Start timing the execution
+    start_time = time.time()
+
+    for i in range(1):
         ga = GeneticAlgorithm(vehicles=vehicles, locations=locations, shifts=shifts)
         best_solution, fitness, best_fitnesses = ga.run()
 
@@ -245,11 +262,15 @@ for vehicles, locations in VALID_PAIRS:
             best_overall_fitness = fitness
             best_overall_solution = best_solution
 
-    # Calculate the average fitness across all 100 iterations
-    average_fitness_across_iterations = total_fitness_across_iterations / 10
+    # Calculate the average fitness across all iterations
+    average_fitness_across_iterations = total_fitness_across_iterations / 1
+
+    # End timing the execution
+    end_time = time.time()
+    execution_time = end_time - start_time
 
     # Write the results for this configuration to the file
-    ga.write_results_to_file(results_filename, vehicles, locations, shifts, best_overall_fitness, average_fitness_across_iterations)
+    ga.write_results_to_file(results_filename, vehicles, locations, shifts, best_overall_fitness, average_fitness_across_iterations, execution_time)
 
     # Print the details of each travel for each car in the best overall solution
     print(f"Details for {vehicles} vehicles and {locations} locations:")
