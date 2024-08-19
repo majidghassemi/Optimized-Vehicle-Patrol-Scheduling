@@ -1,0 +1,100 @@
+Timestamp: 2024-08-19 17:56:19
+5 vehicles, 1 shifts, 200 locations => Best fitness (distinct locations visited): 29.563, Average fitness: 29.563
+Execution Time: 0.89 seconds
+-----
+Timestamp: 2024-08-19 17:56:22
+5 vehicles, 2 shifts, 200 locations => Best fitness (distinct locations visited): 56.131, Average fitness: 56.131
+Execution Time: 2.91 seconds
+-----
+Timestamp: 2024-08-19 17:56:25
+5 vehicles, 3 shifts, 200 locations => Best fitness (distinct locations visited): 75.735, Average fitness: 75.735
+Execution Time: 2.90 seconds
+-----
+Timestamp: 2024-08-19 17:56:29
+5 vehicles, 4 shifts, 200 locations => Best fitness (distinct locations visited): 99.326, Average fitness: 99.326
+Execution Time: 4.71 seconds
+-----
+Timestamp: 2024-08-19 17:56:37
+5 vehicles, 5 shifts, 200 locations => Best fitness (distinct locations visited): 112.857, Average fitness: 112.857
+Execution Time: 7.70 seconds
+-----
+Timestamp: 2024-08-19 17:56:55
+10 vehicles, 1 shifts, 500 locations => Best fitness (distinct locations visited): 58.142, Average fitness: 58.142
+Execution Time: 6.53 seconds
+-----
+Timestamp: 2024-08-19 17:57:04
+10 vehicles, 2 shifts, 500 locations => Best fitness (distinct locations visited): 105.296, Average fitness: 105.296
+Execution Time: 9.38 seconds
+-----
+Timestamp: 2024-08-19 17:57:22
+10 vehicles, 3 shifts, 500 locations => Best fitness (distinct locations visited): 153.402, Average fitness: 153.402
+Execution Time: 18.00 seconds
+-----
+Timestamp: 2024-08-19 17:57:44
+10 vehicles, 4 shifts, 500 locations => Best fitness (distinct locations visited): 191.6, Average fitness: 191.6
+Execution Time: 21.71 seconds
+-----
+Timestamp: 2024-08-19 17:58:25
+10 vehicles, 5 shifts, 500 locations => Best fitness (distinct locations visited): 230.682, Average fitness: 230.682
+Execution Time: 40.83 seconds
+-----
+Timestamp: 2024-08-19 17:59:12
+10 vehicles, 1 shifts, 1000 locations => Best fitness (distinct locations visited): 58.09, Average fitness: 58.09
+Execution Time: 8.87 seconds
+-----
+Timestamp: 2024-08-19 17:59:27
+10 vehicles, 2 shifts, 1000 locations => Best fitness (distinct locations visited): 105.285, Average fitness: 105.285
+Execution Time: 14.54 seconds
+-----
+Timestamp: 2024-08-19 18:00:03
+10 vehicles, 3 shifts, 1000 locations => Best fitness (distinct locations visited): 156.391, Average fitness: 156.391
+Execution Time: 35.77 seconds
+-----
+Timestamp: 2024-08-19 18:00:54
+10 vehicles, 4 shifts, 1000 locations => Best fitness (distinct locations visited): 200.55, Average fitness: 200.55
+Execution Time: 51.81 seconds
+-----
+Timestamp: 2024-08-19 18:01:48
+10 vehicles, 5 shifts, 1000 locations => Best fitness (distinct locations visited): 250.689, Average fitness: 250.689
+Execution Time: 53.49 seconds
+-----
+Timestamp: 2024-08-19 18:03:42
+15 vehicles, 1 shifts, 750 locations => Best fitness (distinct locations visited): 82.647, Average fitness: 82.647
+Execution Time: 11.14 seconds
+-----
+Timestamp: 2024-08-19 18:04:03
+15 vehicles, 2 shifts, 750 locations => Best fitness (distinct locations visited): 156.383, Average fitness: 156.383
+Execution Time: 20.95 seconds
+-----
+Timestamp: 2024-08-19 18:04:31
+15 vehicles, 3 shifts, 750 locations => Best fitness (distinct locations visited): 215.151, Average fitness: 215.151
+Execution Time: 28.59 seconds
+-----
+Timestamp: 2024-08-19 18:05:55
+15 vehicles, 4 shifts, 750 locations => Best fitness (distinct locations visited): 283.859, Average fitness: 283.859
+Execution Time: 84.10 seconds
+-----
+Timestamp: 2024-08-19 18:07:11
+15 vehicles, 5 shifts, 750 locations => Best fitness (distinct locations visited): 340.587, Average fitness: 340.587
+Execution Time: 75.57 seconds
+-----
+Timestamp: 2024-08-19 18:08:39
+15 vehicles, 1 shifts, 1000 locations => Best fitness (distinct locations visited): 83.663, Average fitness: 83.663
+Execution Time: 16.82 seconds
+-----
+Timestamp: 2024-08-19 18:09:02
+15 vehicles, 2 shifts, 1000 locations => Best fitness (distinct locations visited): 154.425, Average fitness: 154.425
+Execution Time: 23.34 seconds
+-----
+Timestamp: 2024-08-19 18:10:01
+15 vehicles, 3 shifts, 1000 locations => Best fitness (distinct locations visited): 229.138, Average fitness: 229.138
+Execution Time: 59.44 seconds
+-----
+Timestamp: 2024-08-19 18:11:08
+15 vehicles, 4 shifts, 1000 locations => Best fitness (distinct locations visited): 292.845, Average fitness: 292.845
+Execution Time: 66.96 seconds
+-----
+Timestamp: 2024-08-19 18:12:16
+15 vehicles, 5 shifts, 1000 locations => Best fitness (distinct locations visited): 352.497, Average fitness: 352.497
+Execution Time: 67.78 seconds
+-----

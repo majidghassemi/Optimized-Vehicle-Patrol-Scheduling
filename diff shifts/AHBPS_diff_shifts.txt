@@ -1,0 +1,100 @@
+Timestamp: 2024-08-19 17:26:50
+5 vehicles, 1 shifts, 200 locations, 10 rest time => Average Unique Locations Visited: 23.81, Average Total Visits: 23.92.
+Execution Time: 0.21 seconds
+-----
+Timestamp: 2024-08-19 17:26:51
+5 vehicles, 2 shifts, 200 locations, 10 rest time => Average Unique Locations Visited: 44.81, Average Total Visits: 47.83.
+Execution Time: 0.42 seconds
+-----
+Timestamp: 2024-08-19 17:26:51
+5 vehicles, 3 shifts, 200 locations, 10 rest time => Average Unique Locations Visited: 62.98, Average Total Visits: 71.56.
+Execution Time: 0.63 seconds
+-----
+Timestamp: 2024-08-19 17:26:52
+5 vehicles, 4 shifts, 200 locations, 10 rest time => Average Unique Locations Visited: 79.93, Average Total Visits: 95.83.
+Execution Time: 0.85 seconds
+-----
+Timestamp: 2024-08-19 17:26:53
+5 vehicles, 5 shifts, 200 locations, 10 rest time => Average Unique Locations Visited: 93.83, Average Total Visits: 119.16.
+Execution Time: 1.06 seconds
+-----
+Timestamp: 2024-08-19 17:26:56
+10 vehicles, 1 shifts, 500 locations, 10 rest time => Average Unique Locations Visited: 47.83, Average Total Visits: 48.08.
+Execution Time: 1.21 seconds
+-----
+Timestamp: 2024-08-19 17:26:58
+10 vehicles, 2 shifts, 500 locations, 10 rest time => Average Unique Locations Visited: 90.92, Average Total Visits: 95.68.
+Execution Time: 2.40 seconds
+-----
+Timestamp: 2024-08-19 17:27:02
+10 vehicles, 3 shifts, 500 locations, 10 rest time => Average Unique Locations Visited: 130.31, Average Total Visits: 143.58.
+Execution Time: 3.60 seconds
+-----
+Timestamp: 2024-08-19 17:27:07
+10 vehicles, 4 shifts, 500 locations, 10 rest time => Average Unique Locations Visited: 165.3, Average Total Visits: 191.44.
+Execution Time: 4.80 seconds
+-----
+Timestamp: 2024-08-19 17:27:13
+10 vehicles, 5 shifts, 500 locations, 10 rest time => Average Unique Locations Visited: 196.4, Average Total Visits: 238.83.
+Execution Time: 6.00 seconds
+-----
+Timestamp: 2024-08-19 17:27:22
+10 vehicles, 1 shifts, 1000 locations, 10 rest time => Average Unique Locations Visited: 47.7, Average Total Visits: 47.77.
+Execution Time: 2.55 seconds
+-----
+Timestamp: 2024-08-19 17:27:28
+10 vehicles, 2 shifts, 1000 locations, 10 rest time => Average Unique Locations Visited: 93.04, Average Total Visits: 95.53.
+Execution Time: 5.07 seconds
+-----
+Timestamp: 2024-08-19 17:27:35
+10 vehicles, 3 shifts, 1000 locations, 10 rest time => Average Unique Locations Visited: 136.85, Average Total Visits: 143.48.
+Execution Time: 7.60 seconds
+-----
+Timestamp: 2024-08-19 17:27:45
+10 vehicles, 4 shifts, 1000 locations, 10 rest time => Average Unique Locations Visited: 177.87, Average Total Visits: 191.14.
+Execution Time: 10.11 seconds
+-----
+Timestamp: 2024-08-19 17:27:58
+10 vehicles, 5 shifts, 1000 locations, 10 rest time => Average Unique Locations Visited: 218.14, Average Total Visits: 239.48.
+Execution Time: 12.67 seconds
+-----
+Timestamp: 2024-08-19 17:28:16
+15 vehicles, 1 shifts, 750 locations, 10 rest time => Average Unique Locations Visited: 71.47, Average Total Visits: 71.8.
+Execution Time: 2.81 seconds
+-----
+Timestamp: 2024-08-19 17:28:22
+15 vehicles, 2 shifts, 750 locations, 10 rest time => Average Unique Locations Visited: 136.17, Average Total Visits: 143.32.
+Execution Time: 5.58 seconds
+-----
+Timestamp: 2024-08-19 17:28:30
+15 vehicles, 3 shifts, 750 locations, 10 rest time => Average Unique Locations Visited: 194.5, Average Total Visits: 215.37.
+Execution Time: 8.38 seconds
+-----
+Timestamp: 2024-08-19 17:28:41
+15 vehicles, 4 shifts, 750 locations, 10 rest time => Average Unique Locations Visited: 247.84, Average Total Visits: 286.45.
+Execution Time: 11.17 seconds
+-----
+Timestamp: 2024-08-19 17:28:55
+15 vehicles, 5 shifts, 750 locations, 10 rest time => Average Unique Locations Visited: 295.7, Average Total Visits: 358.21.
+Execution Time: 13.97 seconds
+-----
+Timestamp: 2024-08-19 17:29:16
+15 vehicles, 1 shifts, 1000 locations, 10 rest time => Average Unique Locations Visited: 71.57, Average Total Visits: 71.8.
+Execution Time: 3.80 seconds
+-----
+Timestamp: 2024-08-19 17:29:23
+15 vehicles, 2 shifts, 1000 locations, 10 rest time => Average Unique Locations Visited: 138.18, Average Total Visits: 143.5.
+Execution Time: 7.57 seconds
+-----
+Timestamp: 2024-08-19 17:29:35
+15 vehicles, 3 shifts, 1000 locations, 10 rest time => Average Unique Locations Visited: 199.74, Average Total Visits: 215.33.
+Execution Time: 11.34 seconds
+-----
+Timestamp: 2024-08-19 17:29:50
+15 vehicles, 4 shifts, 1000 locations, 10 rest time => Average Unique Locations Visited: 257.1, Average Total Visits: 287.22.
+Execution Time: 15.13 seconds
+-----
+Timestamp: 2024-08-19 17:30:09
+15 vehicles, 5 shifts, 1000 locations, 10 rest time => Average Unique Locations Visited: 310.86, Average Total Visits: 359.06.
+Execution Time: 18.92 seconds
+-----

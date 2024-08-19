@@ -1,0 +1,40 @@
+Timestamp: 2024-08-19 22:54:08
+5 vehicles, 6 shifts, 200 locations, 5 rest time => Best fitness (distinct locations visited): 130.427, Average fitness: 256.919
+Execution Time: 7.16 seconds
+-----
+Timestamp: 2024-08-19 22:54:39
+10 vehicles, 6 shifts, 500 locations, 5 rest time => Best fitness (distinct locations visited): 252.859, Average fitness: 504.79200000000003
+Execution Time: 31.40 seconds
+-----
+Timestamp: 2024-08-19 22:55:21
+10 vehicles, 6 shifts, 1000 locations, 5 rest time => Best fitness (distinct locations visited): 278.858, Average fitness: 548.636
+Execution Time: 41.88 seconds
+-----
+Timestamp: 2024-08-19 22:56:26
+15 vehicles, 6 shifts, 750 locations, 5 rest time => Best fitness (distinct locations visited): 379.327, Average fitness: 755.611
+Execution Time: 64.32 seconds
+-----
+Timestamp: 2024-08-19 22:58:19
+15 vehicles, 6 shifts, 1000 locations, 5 rest time => Best fitness (distinct locations visited): 388.316, Average fitness: 775.621
+Execution Time: 113.72 seconds
+-----
+Timestamp: 2024-08-19 22:58:28
+5 vehicles, 6 shifts, 200 locations, 15 rest time => Best fitness (distinct locations visited): 131.443, Average fitness: 254.90500000000003
+Execution Time: 8.93 seconds
+-----
+Timestamp: 2024-08-19 22:58:53
+10 vehicles, 6 shifts, 500 locations, 15 rest time => Best fitness (distinct locations visited): 249.885, Average fitness: 495.753
+Execution Time: 24.82 seconds
+-----
+Timestamp: 2024-08-19 22:59:20
+10 vehicles, 6 shifts, 1000 locations, 15 rest time => Best fitness (distinct locations visited): 269.861, Average fitness: 537.844
+Execution Time: 27.09 seconds
+-----
+Timestamp: 2024-08-19 23:00:44
+15 vehicles, 6 shifts, 750 locations, 15 rest time => Best fitness (distinct locations visited): 384.332, Average fitness: 758.659
+Execution Time: 84.21 seconds
+-----
+Timestamp: 2024-08-19 23:02:10
+15 vehicles, 6 shifts, 1000 locations, 15 rest time => Best fitness (distinct locations visited): 397.214, Average fitness: 786.655
+Execution Time: 85.52 seconds
+-----

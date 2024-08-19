@@ -1,81 +1,56 @@
-import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
+import matplotlib.patches as mpatches
 
-# Data from the files
+# Data from the AHBPS and GDVPS files
 scenarios = [
-    '1 vehicle, 4 locations', '1 vehicle, 5 locations', '1 vehicle, 6 locations', '1 vehicle, 7 locations', 
-    '1 vehicle, 8 locations', '1 vehicle, 10 locations', '1 vehicle, 12 locations', '1 vehicle, 15 locations',
-    '2 vehicles, 4 locations', '2 vehicles, 5 locations', '2 vehicles, 6 locations', '2 vehicles, 7 locations', 
-    '2 vehicles, 8 locations', '2 vehicles, 10 locations', '2 vehicles, 12 locations', '2 vehicles, 15 locations',
-    '3 vehicles, 6 locations', '3 vehicles, 7 locations', '3 vehicles, 8 locations', '3 vehicles, 10 locations', 
-    '3 vehicles, 12 locations', 
-    '4 vehicles, 8 locations', '4 vehicles, 10 locations', '4 vehicles, 12 locations', '4 vehicles, 15 locations',
-    '5 vehicles, 8 locations', '5 vehicles, 10 locations', '5 vehicles, 12 locations', '5 vehicles, 15 locations'
+    '5 vehicles, 200 locations', '10 vehicles, 500 locations', '10 vehicles, 1000 locations',
+    '15 vehicles, 750 locations', '15 vehicles, 1000 locations'
 ]
 
-opl_values = [
-    6, 7, 8, 9, 10, 12, 14, 17,
-    9, 9, 10, 11, 12, 14, 16, 19,
-    11, 12, 13, 15, 17,
-    14, 16, 18, 20,
-    15, 17, 19, 21
-]
+shifts = ['1 shift', '2 shifts', '3 shifts', '4 shifts', '5 shifts']
 
-ahbps_values = [
-    3, 4, 5, 6, 7, 9, 9, 13,
-    3, 4, 5, 6, 7, 9, 11, 14,
-    5, 6, 7, 9, 11,
-    7, 9, 11, 14,
-    7, 9, 11, 14
-]
+ahbps_data = {
+    '5 vehicles, 200 locations': [23.81, 44.81, 62.98, 79.93, 93.83],
+    '10 vehicles, 500 locations': [47.83, 90.92, 130.31, 165.3, 196.4],
+    '10 vehicles, 1000 locations': [47.7, 93.04, 136.85, 177.87, 218.14],
+    '15 vehicles, 750 locations': [71.47, 136.17, 194.5, 247.84, 295.7],
+    '15 vehicles, 1000 locations': [71.57, 138.18, 199.74, 257.1, 310.86]
+}
 
-gdvps_values = [
-    5, 6, 7, 8, 9, 11, 13, 15,
-    5, 6, 7, 8, 9, 10, 13, 17,
-    10, 9, 10, 14, 14,
-    11, 12, 14, 17,
-    11, 13, 15, 16
-]
+gdvps_data = {
+    '5 vehicles, 200 locations': [29.563, 56.131, 75.735, 99.326, 112.857],
+    '10 vehicles, 500 locations': [58.142, 105.296, 153.402, 191.6, 230.682],
+    '10 vehicles, 1000 locations': [58.09, 105.285, 156.391, 200.55, 250.689],
+    '15 vehicles, 750 locations': [82.647, 156.383, 215.151, 283.859, 340.587],
+    '15 vehicles, 1000 locations': [83.663, 154.425, 229.138, 292.845, 352.497]
+}
 
-# Convert the data to DataFrames
-df = pd.DataFrame({
-    'Scenario': scenarios,
-    'Optimal': opl_values,
-    'AHBPS': ahbps_values,
-    'GDVPS': gdvps_values
-})
+# Plotting the data
+bar_width = 0.35
+index = np.arange(len(shifts))
 
-# Normalize the data based on the best achieved result (highest value)
-df_normalized = df.copy()
-max_value = df[['Optimal', 'AHBPS', 'GDVPS']].values.max()
-df_normalized[['Optimal', 'AHBPS', 'GDVPS']] = df[['Optimal', 'AHBPS', 'GDVPS']] / max_value
+fig, ax = plt.subplots(figsize=(16, 8))
 
-# Plotting the normalized data
-plt.figure(figsize=(14, 8))
-bar_width = 0.25
+hatches = ['/', '\\', '|', '-', '+']
+color_ahbps = '#FF3333'  # Red for AHBPS
+color_gdvps = '#3399FF'  # Blue for GDVPS
 
-# Set positions of bars on the x-axis
-r1 = range(len(df_normalized))
-r2 = [x + bar_width for x in r1]
-r3 = [x + bar_width for x in r2]
+for i, scenario in enumerate(scenarios):
+    plt.bar(index + i * bar_width, ahbps_data[scenario], bar_width/2, color=color_ahbps, hatch=hatches[i], edgecolor='black', label=f'AHBPS - {scenario}')
+    plt.bar(index + i * bar_width + bar_width/2, gdvps_data[scenario], bar_width/2, color=color_gdvps, hatch=hatches[i], edgecolor='black', label=f'GDVPS - {scenario}')
 
-# Create bars
-plt.bar(r1, df_normalized['Optimal'], color='black', width=bar_width, label='Optimal')
-plt.bar(r2, df_normalized['AHBPS'], color='red', width=bar_width, label='AHBPS')
-plt.bar(r3, df_normalized['GDVPS'], color='blue', width=bar_width, label='GDVPS')
+plt.xlabel('Number of Shifts')
+plt.ylabel('Number of Visited Locations')
+plt.title('AHBPS and GDVPS Evaluation by varying the number of shifts')
 
-# Add xticks on the middle of the group bars
-plt.xlabel('Different Scenarios')
-plt.ylabel('Normalized Locations Visited')
-plt.title('Normalized Performance evaluation between the Optimal solution, AHBPS, and GDVPS')
-plt.xticks([r + bar_width for r in range(len(df_normalized))], df['Scenario'], rotation=90)
+plt.xticks(index + bar_width, shifts)
 
-# Create legend & title
-plt.legend()
+# Custom legend for AHBPS and GDVPS
+handles_ahbps = [mpatches.Patch(facecolor=color_ahbps, edgecolor='black', hatch=h, label=f'AHBPS - {scenarios[i]}') for i, h in enumerate(hatches)]
+handles_gdvps = [mpatches.Patch(facecolor=color_gdvps, edgecolor='black', hatch=h, label=f'GDVPS - {scenarios[i]}') for i, h in enumerate(hatches)]
+plt.legend(handles=handles_ahbps + handles_gdvps, loc='upper left', bbox_to_anchor=(1, 1))
+
 plt.tight_layout()
-
-# Save the plot to a file
-plt.savefig('./normalized_performance_evaluation_optimal_AHBPS_GDVPS.png')
-
-# Show the plot
+plt.savefig('final_ahbps_gdvps_evaluation_shifts.png')
 plt.show()
