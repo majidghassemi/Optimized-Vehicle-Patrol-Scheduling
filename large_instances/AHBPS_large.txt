@@ -1,12 +1,3 @@
-Timestamp: 2024-08-17 17:19:26
-5 vehicles, 6 shifts, 100 locations, 10 rest time => Average Unique Locations Visited: 79.49, Average Total Visits: 143.09.
------
-Timestamp: 2024-08-17 17:19:27
-5 vehicles, 6 shifts, 200 locations, 10 rest time => Average Unique Locations Visited: 107.18, Average Total Visits: 143.54.
------
-Timestamp: 2024-08-17 17:19:29
-5 vehicles, 6 shifts, 300 locations, 10 rest time => Average Unique Locations Visited: 118.0, Average Total Visits: 143.28.
------
 Timestamp: 2024-08-17 17:19:30
 8 vehicles, 6 shifts, 100 locations, 10 rest time => Average Unique Locations Visited: 93.76, Average Total Visits: 229.46.
 -----

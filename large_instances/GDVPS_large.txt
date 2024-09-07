@@ -1,12 +1,4 @@
-Timestamp: 2024-08-16 13:03:07
-5 vehicles, 6 shifts, 100 locations => Best fitness (distinct locations visited): 98.503, Average fitness: 94.64996999999995
------
-Timestamp: 2024-08-16 13:20:33
-5 vehicles, 6 shifts, 200 locations => Best fitness (distinct locations visited): 137.467, Average fitness: 129.50553000000005
------
-Timestamp: 2024-08-16 13:45:03
-5 vehicles, 6 shifts, 300 locations => Best fitness (distinct locations visited): 148.429, Average fitness: 141.83146000000002
------
+
 Timestamp: 2024-08-16 14:04:23
 8 vehicles, 6 shifts, 100 locations => Best fitness (distinct locations visited): 97.17, Average fitness: 97.04093999999998
 -----

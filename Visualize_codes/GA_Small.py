@@ -5,7 +5,7 @@ from datetime import datetime
 import time  # Import the time module for tracking execution time
 
 class GeneticAlgorithm:
-    def __init__(self, vehicles, locations, shifts=6, population_size=100, generations=110, rest_period=10, patrol_time=5, heuristic_file='/home/ubuntu/Optimized-Vehicle-Patrol-Scheduling/AHBPS_Small_Instance_Execution_Time.txt'):
+    def __init__(self, vehicles, locations, shifts=6, population_size=100, generations=110, rest_period=10, patrol_time=5, heuristic_file='/home/majidghasemi/Optimized-Vehicle-Patrol-Scheduling/small_instances/AHBPS_Small_Instance_Execution_Time.txt'):
         self.vehicles = vehicles
         self.locations = locations + 1  # Adding depot as a single start/end location
         self.shifts = shifts
@@ -232,9 +232,10 @@ VALID_PAIRS = [
             # (1, 4), (1, 5), (1, 10), (1, 12), (1, 15), (1, 18), (1, 20),(2, 4),(2, 5),(2, 10), (2, 12), (2, 15), (2, 18), (2, 20), (2, 25), (2, 30),
             # (3, 10),(3, 12),(3, 15), (3, 18), (3, 20), (3, 25), (3, 30), (4, 12),(4, 15), (4, 18), (4, 20), (4, 25), (4, 30), 
             # (5, 12),(5, 15), (5, 18), (5, 20), (5, 25), (5, 30), 
-            (1, 4), (1, 5), (1,6), (1,7), (1,8), (1, 10), (1, 12), (1, 15),(2, 4),(2, 5),(2, 6),(2, 7),(2, 8),(2, 10), (2, 12), (2, 15),
-            (3, 6),(3, 7),(3, 8), (3, 10), (3, 12), (4, 8),(4, 10), (4, 12), (4, 15), 
-            (5, 8),(5, 10), (5, 12), (5, 15), 
+            # (1, 4), (1, 5), (1,6), (1,7), (1,8), (1, 10), (1, 12), (1, 15),(2, 4),(2, 5),(2, 6),(2, 7),(2, 8),(2, 10), (2, 12), (2, 15),
+            # (3, 6),(3, 7),(3, 8), (3, 10), (3, 12), (4, 8),(4, 10), (4, 12), (4, 15), 
+            # (5, 8),(5, 10), (5, 12), (5, 15), 
+            (3, 5), (3, 10), (3, 15), (4, 5), (4, 10), (4, 15)
 ]
 # (10, 100), (10, 200), (10, 300), (10, 400), (10, 500), (10, 600), (10, 700), (10, 800), (10, 900), (10, 1000),
 

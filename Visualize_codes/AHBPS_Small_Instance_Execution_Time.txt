@@ -63,7 +63,7 @@ Timestamp: 2024-08-18 21:42:25
 Execution Time: 0.01 seconds
 -----
 Timestamp: 2024-08-18 21:42:25
-3 vehicles, 6 shifts, 6 locations, 10 rest time => Average Unique Locations Visited: 5.0, Average Total Visits: 29.0.
+3 vehicles, 6 shifts, 5 locations, 10 rest time => Average Unique Locations Visited: 5.0, Average Total Visits: 29.0.
 Execution Time: 0.01 seconds
 -----
 Timestamp: 2024-08-18 21:42:25
@@ -94,6 +94,10 @@ Timestamp: 2024-08-18 21:42:25
 4 vehicles, 6 shifts, 12 locations, 10 rest time => Average Unique Locations Visited: 11.0, Average Total Visits: 61.0.
 Execution Time: 0.01 seconds
 -----
+Timestamp: 2024-09-07 13:55:23
+3 vehicles, 6 shifts, 15 locations, 10 rest time => Average Unique Locations Visited: 14.0, Average Total Visits: 89.0.
+Execution Time: 0.01 seconds
+-----
 Timestamp: 2024-08-18 21:42:25
 4 vehicles, 6 shifts, 15 locations, 10 rest time => Average Unique Locations Visited: 14.0, Average Total Visits: 85.0.
 Execution Time: 0.01 seconds
@@ -111,6 +115,6 @@ Timestamp: 2024-08-18 21:42:25
 Execution Time: 0.01 seconds
 -----
 Timestamp: 2024-08-18 21:42:25
-5 vehicles, 6 shifts, 15 locations, 10 rest time => Average Unique Locations Visited: 14.0, Average Total Visits: 88.0.
+5 vehicles, 6 shifts, 15 locations, 10 rest time => Average Unique Locations Visited: 13.5, Average Total Visits: 88.0.
 Execution Time: 0.01 seconds
 -----
