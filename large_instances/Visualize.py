@@ -63,8 +63,7 @@ best_values = [max(ahbps_values[i], gdvps_values[i]) for i in range(len(scenario
 best_x_positions = [(x[i] - bar_width/2 + x[i] + bar_width/2)/2.0355 for i in range(len(scenarios))]  # Center of the bars
 
 # Plot the line connecting the best bars
-# ax.plot(best_x_positions, best_values, color='purple', linestyle='-', marker='*', linewidth=2, label='Best Values')
-ax.plot(best_x_positions, best_values, color='purple', linestyle='-', marker='*', linewidth=2,)
+ax.plot(best_x_positions, best_values, color='purple', linestyle='-', marker='*', linewidth=2)
 
 # Labels and title with increased font size
 ax.set_xlabel('Different Scenarios', fontsize=14)
@@ -84,8 +83,8 @@ for label in xtick_labels:
 # Increase the font size of the numbers on the y-axis
 ax.tick_params(axis='y', labelsize=17)
 
-# Increase the font size of the legend
-ax.legend(fontsize=12)
+# Move the legend to the left of the figure
+ax.legend(fontsize=12, loc='center left', bbox_to_anchor=(-0.0, 0.9))
 
 # Adjust layout
 plt.tight_layout()
