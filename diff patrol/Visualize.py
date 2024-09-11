@@ -2,47 +2,48 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Updated scenarios to include vehicles and locations (12 scenarios)
-scenarios = [
-    '5 Mins', '10 Mins', '15 Mins'
-]
+scenarios = ['5 Mins', '10 Mins', '15 Mins']
 
 # AHBPS (Average Unique Locations Visited)
-ahbps_values = [
-    254.71, 205.01, 168.23
-]
+ahbps_values = [254.71, 205.01, 168.23]
 
 # GDVPS (Average fitness)
-gdvps_values = [
-   298 , 236.715, 188.537
-]
+gdvps_values = [298, 236.715, 188.537]
+
+# Find the maximum value from both lists
+max_value = max(max(ahbps_values), max(gdvps_values))
+
+# Normalize the values between 0 and 100
+ahbps_values_normalized = [(val / max_value) * 100 for val in ahbps_values]
+gdvps_values_normalized = [(val / max_value) * 100 for val in gdvps_values]
 
 # X-axis positions
 x = np.arange(len(scenarios)) * 1.5
 
 # Bar width
-bar_width = 0.55  # Slightly smaller to fit two bars side by side
+bar_width = 0.55
 
 # Creating the plot
 fig, ax = plt.subplots()
 
 # Bar for GDVPS (black with stripes) on the left
-bars_gdvps = ax.bar(x - bar_width/2, gdvps_values, bar_width, label='GDVPS', color='white', 
+bars_gdvps = ax.bar(x - bar_width/2, gdvps_values_normalized, bar_width, label='GDVPS', color='white', 
                     hatch='//', edgecolor='black')
 
 # Bar for AHBPS (pale yellow with dots) on the right
-bars_ahbps = ax.bar(x + bar_width/2, ahbps_values, bar_width, label='AHBPS', color='#FFFF99', 
+bars_ahbps = ax.bar(x + bar_width/2, ahbps_values_normalized, bar_width, label='AHBPS', color='#FFFF99', 
                     hatch='.', edgecolor='red')
 
-# Find the best (highest) bar between AHBPS and GDVPS for each scenario
-best_values = [max(ahbps_values[i], gdvps_values[i]) for i in range(len(scenarios))]
-best_x_positions = [(x[i] - bar_width/2 + x[i] + bar_width/2)/2.0355 for i in range(len(scenarios))]  # Center of the bars
+# Find the best (highest) normalized bar between AHBPS and GDVPS for each scenario
+best_values_normalized = [max(ahbps_values_normalized[i], gdvps_values_normalized[i]) for i in range(len(scenarios))]
+best_x_positions = [(x[i] - bar_width/2 + x[i] + bar_width/2)/2.0355 for i in range(len(scenarios))]
 
-# Plot the line connecting the best bars
-ax.plot(best_x_positions, best_values, color='purple', linestyle='-', marker='*', linewidth=2)
+# Plot the line connecting the best normalized bars
+ax.plot(best_x_positions, best_values_normalized, color='purple', linestyle='-', marker='*', linewidth=2)
 
 # Labels and title with increased font size
-ax.set_xlabel('Different Patrol Time (10 V, 1000 L)', fontsize=14)
-ax.set_ylabel('Visited Locations', fontsize=14)
+ax.set_xlabel('Patrol Time (10 V, 1000 L)', fontsize=14)
+ax.set_ylabel('Visited Locations (Normalized)', fontsize=14)
 ax.set_title('Performance Comparison by varying Patrol Time', fontsize=13)
 
 # Set the tick labels for the x-axis with decreased font size
@@ -65,7 +66,7 @@ ax.legend(fontsize=12, loc='center left', bbox_to_anchor=(0.75, 0.9))
 plt.tight_layout()
 
 # Save the plot locally
-plt.savefig('comparison_ahbps_gdvps_with_best_line_diff_patrol.png', dpi=600)
+plt.savefig('comparison_ahbps_gdvps_with_best_line_diff_patrol_v2.png', dpi=600)
 
 # Show the plot
 plt.show()
