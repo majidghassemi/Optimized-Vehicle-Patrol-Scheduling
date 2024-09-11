@@ -5,10 +5,10 @@ import numpy as np
 scenarios = ['5 Mins', '10 Mins', '15 Mins']
 
 # AHBPS (Average Unique Locations Visited)
-ahbps_values = [254.71, 205.01, 168.23]
+ahbps_values = [254.71, 241.01, 215.23]
 
 # GDVPS (Average fitness)
-gdvps_values = [298, 236.715, 188.537]
+gdvps_values = [298, 292, 276]
 
 # Find the maximum value from both lists
 max_value = max(max(ahbps_values), max(gdvps_values))
