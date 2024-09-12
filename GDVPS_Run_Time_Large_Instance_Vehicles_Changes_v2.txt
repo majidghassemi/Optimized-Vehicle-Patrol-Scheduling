@@ -1,0 +1,8 @@
+Timestamp: 2024-09-12 13:01:42
+15 vehicles, 6 shifts, 1000 locations => Best fitness (distinct locations visited): 391.325, Average fitness: 391.325
+Execution Time: 88.68 seconds
+-----
+Timestamp: 2024-09-12 13:03:06
+15 vehicles, 6 shifts, 1000 locations => Best fitness (distinct locations visited): 403.294, Average fitness: 403.294
+Execution Time: 83.95 seconds
+-----

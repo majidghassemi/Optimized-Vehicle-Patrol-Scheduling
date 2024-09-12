@@ -5,7 +5,7 @@ from datetime import datetime
 import time  # Import the time module for tracking execution time
 
 class GeneticAlgorithm:
-    def __init__(self, vehicles, locations, shifts=6, population_size=200, generations=150, rest_period=10, patrol_time=5, heuristic_file='./AHBPS_Run_Time_Large_Instance_Vehicles_Changes.txt'):
+    def __init__(self, vehicles, locations, shifts=6, population_size=200, generations=150, rest_period=10, patrol_time=5, heuristic_file='/home/majidghasemi/Optimized-Vehicle-Patrol-Scheduling/large_instances/AHBPS_large.txt'):
         self.vehicles = vehicles
         self.locations = locations + 1  # Adding depot as a single start/end location
         self.shifts = shifts
@@ -14,7 +14,8 @@ class GeneticAlgorithm:
         self.patrol_time = patrol_time
         self.rest_period = rest_period
         self.shift_lengths = [119] * self.shifts
-        self.distance_matrix = self.generate_distance_matrix()
+        self.base_distance_matrix = self.generate_distance_matrix()  # Base distance matrix initialized once
+        self.distance_matrix = self.base_distance_matrix.copy()  # Copy that may fluctuate during runs
         self.mutation_rate = 0.1
         self.elite_size = int(0.1 * self.population_size)
         self.tournament_size = max(2, int(0.05 * self.locations))  # Dynamic tournament size based on number of locations
@@ -23,7 +24,31 @@ class GeneticAlgorithm:
         self.fitness_cache = {}
 
     def generate_distance_matrix(self):
-        return np.random.randint(10, 20, size=(self.locations, self.locations))
+        # Generate a random distance matrix with values between 10 and 20
+        matrix = np.random.randint(10, 21, size=(self.locations, self.locations))
+        
+        # Make the matrix symmetric to reflect a non-directed graph
+        matrix = (matrix + matrix.T) // 2
+        
+        # Set the diagonal to 0 to indicate no distance between the same location
+        np.fill_diagonal(matrix, 0)
+
+        # Introduce disconnections: set some random pairs to a very high value (infinity)
+        for i in range(self.locations):
+            for j in range(i + 1, self.locations):
+                if random.random() < 0.3:  # 30% chance to disconnect
+                    matrix[i][j] = matrix[j][i] = np.inf  # No direct connection between i and j
+
+        return matrix
+
+    def fluctuate_travel_times(self):
+        # Fluctuate travel times by +/- 2 minutes for some of the edges
+        for i in range(self.locations):
+            for j in range(i + 1, self.locations):
+                if self.base_distance_matrix[i][j] != np.inf:  # Only fluctuate valid edges
+                    fluctuation = random.choice([-2, 2])
+                    self.distance_matrix[i][j] = self.base_distance_matrix[i][j] + fluctuation
+                    self.distance_matrix[j][i] = self.distance_matrix[i][j]  # Ensure symmetry
 
     def load_heuristic_solutions(self, heuristic_file):
         heuristic_solutions = {}
@@ -159,6 +184,16 @@ class GeneticAlgorithm:
         stagnation_count = 0  # Track how long the solution has not improved
 
         for generation in range(self.generations):
+            # Reset to the base travel times at the start of every run
+            self.distance_matrix = self.base_distance_matrix.copy()
+
+            # Decide if travel times will fluctuate
+            if random.random() < 0.5:
+                print("Fluctuating travel times for this run.")
+                self.fluctuate_travel_times()
+            else:
+                print("Keeping travel times constant for this run.")
+
             new_population = []
             elite_individuals = sorted(self.population, key=self.evaluate_fitness, reverse=True)[:self.elite_size]
             new_population.extend(elite_individuals)
@@ -184,17 +219,11 @@ class GeneticAlgorithm:
             else:
                 stagnation_count += 1
 
-            # Log generation and stagnation
             print(f"Generation {generation + 1}, Best Fitness: {current_best_fitness}, Stagnation Count: {stagnation_count}")
 
             if stagnation_count >= 10:  # Early termination if no improvement for 10 generations
                 print(f"Terminating early at generation {generation + 1} due to lack of improvement.")
                 break
-
-            if generation > 0 and best_fitnesses[-1] == best_fitnesses[-2]:
-                self.mutation_rate = min(1.0, self.mutation_rate + 0.01)
-            else:
-                self.mutation_rate = max(0.1, self.mutation_rate - 0.01)
 
         return best_solution, best_fitness, best_fitnesses
 
@@ -216,24 +245,12 @@ class GeneticAlgorithm:
                     print(f"    Location {loc}, Time {time}")
                 print("")
 
+
 # File to save all the results
-results_filename = 'GDVPS_Run_Time_Large_Instance_Vehicles_Changes.txt'
+results_filename = 'GDVPS_Run_Time_Large_Instance_Vehicles_Changes_v2.txt'
 
 # Define the valid pairs of (vehicles, locations)
-VALID_PAIRS = [
-            # (5, 100), (5, 200), (5, 300), (8, 100), (8, 200), (8, 300), (8, 400), (8, 500), (10, 100), (10, 200), (10, 300), (10, 400), (10, 500), 
-            # (10, 750), (10, 1000), (12, 100), (12, 200), (12, 300), (12, 400), (12, 500), 
-            # (12, 750), (12, 1000), (15, 200),(15, 300), (15, 400), (15, 500), 
-            # (15, 750), (15, 1000), 
-            # (20, 500), (20, 750), (20, 1000)
-            # (10, 100), (10, 200), (10, 300), (10, 400), (10, 500), (10, 600), (10, 700), (10, 800), (10, 900), (10, 1000)
-            # (10, 100), (10, 200), (10, 300), (10, 400), (10, 500), (10, 600), (10, 700), (10, 800), (10, 900), (10, 1000),
-            (5, 200), (6, 200), (7, 200), (8, 200), (9, 200), (10, 200), (12, 200), (15, 200), (18, 200), (20, 200)
-]
-# (10, 100), (10, 200), (10, 300), (10, 400), (10, 500), (10, 600), (10, 700), (10, 800), (10, 900), (10, 1000),
-
-# 
-
+VALID_PAIRS = [(15, 1000)]
 
 # Iterate over all valid pairs and run the algorithm
 for vehicles, locations in VALID_PAIRS:

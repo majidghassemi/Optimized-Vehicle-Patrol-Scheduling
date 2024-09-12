@@ -21,6 +21,29 @@ class HVSP:
         self.shift_lengths = shift_lengths if shift_lengths else [120] * shifts
         self.iterations = iterations
 
+        # Generate a base travel time matrix between locations (random between 10 and 20)
+        self.base_travel_times = self.generate_travel_times()
+
+        # Initialize the current travel times matrix (will copy from base matrix and fluctuate when needed)
+        self.travel_times = self.base_travel_times.copy()
+
+    def generate_travel_times(self):
+        # Initialize travel times between 10 and 20
+        travel_times = {}
+        for i in range(self.total_locations):
+            for j in range(i + 1, self.total_locations):
+                time = random.randint(10, 20)
+                travel_times[(i, j)] = time
+                travel_times[(j, i)] = time
+        return travel_times
+
+    def fluctuate_travel_times(self):
+        # Fluctuate travel times by +/- 2 minutes for a subset of the edges
+        for (i, j) in self.base_travel_times:
+            fluctuation = random.choice([-2, 2])
+            self.travel_times[(i, j)] = self.base_travel_times[(i, j)] + fluctuation
+            self.travel_times[(j, i)] = self.travel_times[(i, j)]  # Keep symmetry
+
     def needs_revisiting(self, current_time, location, last_visit_times, location_locks):
         return (current_time - last_visit_times[location]) >= 30 and (location_locks[location] is None or location_locks[location] <= current_time)
 
@@ -62,7 +85,7 @@ class HVSP:
             if not possible_locations:
                 break
 
-            travel_time_to_next = random.randint(10, 20)
+            travel_time_to_next = self.travel_times[(self.first_depot, possible_locations[0])]  # Use travel times from the matrix
             next_possible_time = current_time + travel_time_to_next + self.patrol_time
 
             if next_possible_time + travel_time_to_next > end_time:
@@ -71,7 +94,7 @@ class HVSP:
             # Shuffle and select the next location to visit
             random.shuffle(possible_locations)
             for loc in possible_locations:
-                travel_to_next = current_time + travel_time_to_next
+                travel_to_next = current_time + self.travel_times[(self.first_depot, loc)]
                 stay_at_next = travel_to_next + self.patrol_time
                 if stay_at_next + travel_time_to_next <= end_time:
                     route.append(loc)
@@ -99,6 +122,14 @@ class HVSP:
 
     def run_simulation(self, last_visit_times, location_locks, is_detailed=False):
         routes, timing_info, location_visits, shift_start_time, shift_end_time = self.initialize_simulation()
+
+        # Randomly decide if we should fluctuate travel times for this run (25% of the time)
+        if random.random() < 0.25:
+            print("Fluctuating travel times for this run.")
+            self.fluctuate_travel_times()
+        else:
+            print("Keeping travel times constant for this run.")
+            self.travel_times = self.base_travel_times.copy()  # Reset to base travel times
 
         # Initialize with a random solution
         for shift in range(self.shifts):
@@ -141,15 +172,9 @@ class HVSP:
     def main(self):
         # List of (vehicles, locations) pairs to test
         test_cases = [
-            (1, 4), (1, 5), (1, 10), (1, 12), (1, 15), (1, 18), (1, 20),(2, 4),(2, 5),(2, 10), (2, 12), (2, 15), (2, 18), (2, 20), (2, 25), (2, 30),
-            (3, 10),(3, 12),(3, 15), (3, 18), (3, 20), (3, 25), (3, 30), (4, 12),(4, 15), (4, 18), (4, 20), (4, 25), (4, 30), 
-            (5, 12),(5, 15), (5, 18), (5, 20), (5, 25), (4, 30), 
-            # (5, 100), (5, 200), (5, 300), (8, 100), (8, 200), (8, 300), (8, 400), (8, 500), (10, 100), (10, 200), (10, 300), (10, 400), (10, 500), 
-            # (10, 750), (10, 1000), (12, 100), (12, 200), (12, 300), (12, 400), (12, 500), 
-            # (12, 750), (12, 1000), (15, 200),(15, 300), (15, 400), (15, 500), 
-            # (15, 750), (15, 1000), (20, 500), (20, 750), (20, 1000)
-            # (10, 100), (10, 200), (10, 300), (10, 400), (10, 500), (10, 600), (10, 700), (10, 800), (10, 900), (10, 1000),
-            # (5, 200), (6, 200), (7, 200), (8, 200), (9, 200), (10, 200), (12, 200), (15, 200), (18, 200), (20, 200)
+            (1, 4), (1, 5), (1, 10), (1, 12), (1, 15), (1, 18), (1, 20), (2, 4), (2, 5), (2, 10), (2, 12), (2, 15), (2, 18), (2, 20), (2, 25), (2, 30),
+            (3, 10), (3, 12), (3, 15), (3, 18), (3, 20), (3, 25), (3, 30), (4, 12), (4, 15), (4, 18), (4, 20), (4, 25), (4, 30),
+            (5, 12), (5, 15), (5, 18), (5, 20), (5, 25), (4, 30),
         ]
 
         for vehicles, locations in test_cases:
