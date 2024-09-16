@@ -5,7 +5,7 @@ from datetime import datetime
 import time  # Import the time module for tracking execution time
 
 class GeneticAlgorithm:
-    def __init__(self, vehicles, locations, shifts=6, population_size=200, generations=150, rest_period=10, patrol_time=5, heuristic_file='/home/majidghasemi/Optimized-Vehicle-Patrol-Scheduling/large_instances/AHBPS_large.txt'):
+    def __init__(self, vehicles, locations, shifts=6, population_size=300, generations=300, rest_period=10, patrol_time=5, heuristic_file='/home/majidghasemi/Optimized-Vehicle-Patrol-Scheduling/large_instances/AHBPS_large.txt'):
         self.vehicles = vehicles
         self.locations = locations + 1  # Adding depot as a single start/end location
         self.shifts = shifts
@@ -140,7 +140,7 @@ class GeneticAlgorithm:
                 route, _ = individual[shift][vehicle]
                 unique_locations.update(route)
                 total_distance += sum(self.distance_matrix[route[i]][route[i+1]] for i in range(len(route) - 1))
-        fitness = len(unique_locations) - (total_distance / 1000)
+        fitness = len(unique_locations)
         self.fitness_cache[ind_str] = fitness
         return fitness
 
@@ -221,7 +221,7 @@ class GeneticAlgorithm:
 
             print(f"Generation {generation + 1}, Best Fitness: {current_best_fitness}, Stagnation Count: {stagnation_count}")
 
-            if stagnation_count >= 10:  # Early termination if no improvement for 10 generations
+            if stagnation_count >= 25:  # Early termination if no improvement for 10 generations
                 print(f"Terminating early at generation {generation + 1} due to lack of improvement.")
                 break
 
