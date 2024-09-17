@@ -25,7 +25,7 @@ class GeneticAlgorithm:
 
     def generate_distance_matrix(self):
         # Generate a random distance matrix with values between 10 and 20
-        matrix = np.random.randint(10, 21, size=(self.locations, self.locations))
+        matrix = np.random.normal(mu=15, scale=5, size=(self.locations, self.locations))
         
         # Make the matrix symmetric to reflect a non-directed graph
         matrix = (matrix + matrix.T) // 2
