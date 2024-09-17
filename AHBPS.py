@@ -1,4 +1,5 @@
 import random
+import numpy as np
 from datetime import datetime
 import time  # Import the time module for tracking execution time
 
@@ -21,18 +22,19 @@ class HVSP:
         self.shift_lengths = shift_lengths if shift_lengths else [120] * shifts
         self.iterations = iterations
 
-        # Generate a base travel time matrix between locations (random between 10 and 20)
+        # Generate a base travel time matrix between locations (using normal distribution)
         self.base_travel_times = self.generate_travel_times()
 
         # Initialize the current travel times matrix (will copy from base matrix and fluctuate when needed)
         self.travel_times = self.base_travel_times.copy()
 
     def generate_travel_times(self):
-        # Initialize travel times between 10 and 20
+        # Initialize travel times using normal distribution with mean 15 and standard deviation 2.5
         travel_times = {}
         for i in range(self.total_locations):
             for j in range(i + 1, self.total_locations):
-                time = random.randint(10, 20)
+                time = np.random.normal(loc=15, scale=2.5)
+                time = max(10, min(20, time))  # Ensure the time stays between 10 and 20
                 travel_times[(i, j)] = time
                 travel_times[(j, i)] = time
         return travel_times
@@ -85,26 +87,23 @@ class HVSP:
             if not possible_locations:
                 break
 
-            travel_time_to_next = self.travel_times[(self.first_depot, possible_locations[0])]  # Use travel times from the matrix
+            # Implementing hill climbing to choose the next location with the shortest travel time
+            next_location = min(possible_locations, key=lambda loc: self.travel_times[(self.first_depot, loc)])
+
+            travel_time_to_next = self.travel_times[(self.first_depot, next_location)]
             next_possible_time = current_time + travel_time_to_next + self.patrol_time
 
             if next_possible_time + travel_time_to_next > end_time:
                 break
 
-            # Shuffle and select the next location to visit
-            random.shuffle(possible_locations)
-            for loc in possible_locations:
-                travel_to_next = current_time + self.travel_times[(self.first_depot, loc)]
-                stay_at_next = travel_to_next + self.patrol_time
-                if stay_at_next + travel_time_to_next <= end_time:
-                    route.append(loc)
-                    visited_this_shift.add(loc)
-                    current_time = stay_at_next
-                    timing_info[shift][vehicle].append((loc, current_time))
-                    last_visit_times[loc] = current_time
-                    location_locks[loc] = current_time + self.patrol_time
-                    location_visits[loc].append((shift, vehicle, current_time))
-                    break
+            # Move to the selected location
+            route.append(next_location)
+            visited_this_shift.add(next_location)
+            current_time = next_possible_time
+            timing_info[shift][vehicle].append((next_location, current_time))
+            last_visit_times[next_location] = current_time
+            location_locks[next_location] = current_time + self.patrol_time
+            location_visits[next_location].append((shift, vehicle, current_time))
 
         # Add return to depot if time allows
         if current_time + travel_time_to_next <= end_time:
@@ -174,7 +173,7 @@ class HVSP:
         test_cases = [
             (1, 4), (1, 5), (1, 10), (1, 12), (1, 15), (1, 18), (1, 20), (2, 4), (2, 5), (2, 10), (2, 12), (2, 15), (2, 18), (2, 20), (2, 25), (2, 30),
             (3, 10), (3, 12), (3, 15), (3, 18), (3, 20), (3, 25), (3, 30), (4, 12), (4, 15), (4, 18), (4, 20), (4, 25), (4, 30),
-            (5, 12), (5, 15), (5, 18), (5, 20), (5, 25), (4, 30),
+            (5, 12), (5, 15), (5, 18), (5, 20), (5, 25), (5, 30)
         ]
 
         for vehicles, locations in test_cases:
