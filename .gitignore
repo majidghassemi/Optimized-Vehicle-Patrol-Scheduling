@@ -95,6 +95,7 @@ venv.bak/
 # Ignoring the results file
 *.txt
 .txt
+!requirements.txt
 
 #Ignoring folders
 diff_patrol/
@@ -102,5 +103,4 @@ diff_rest_time/
 diff_shifts/
 images/
 large_instances/
-OPL/
 Visualize_codes/
