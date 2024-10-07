@@ -2,59 +2,54 @@ import random
 import numpy as np
 import re
 from datetime import datetime
-import time  # Import the time module for tracking execution time
+import time
 
-class GeneticAlgorithm:
-    def __init__(self, vehicles, locations, shifts=6, population_size=300, generations=300, rest_period=10, patrol_time=5, heuristic_file='/home/majidghasemi/Optimized-Vehicle-Patrol-Scheduling/large_instances/AHBPS_large.txt'):
+class GDVPS:
+    def __init__(self, vehicles, locations, shifts=6, population_size=400, generations=500, rest_period=10, patrol_time=5, heuristic_file='/home/majidghasemi/Optimized-Vehicle-Patrol-Scheduling/large_instances/AHBPS_large.txt'):
         self.vehicles = vehicles
-        self.locations = locations + 1  # Adding depot as a single start/end location
+        self.locations = locations + 1
         self.shifts = shifts
         self.population_size = population_size
         self.generations = generations
         self.patrol_time = patrol_time
         self.rest_period = rest_period
         self.shift_lengths = [119] * self.shifts
-        self.base_distance_matrix = self.generate_distance_matrix()  # Base distance matrix initialized once
-        self.distance_matrix = self.base_distance_matrix.copy()  # Copy that may fluctuate during runs
+        self.base_distance_matrix = self.generate_distance_matrix()
+        self.distance_matrix = self.base_distance_matrix.copy()
         self.mutation_rate = 0.1
         self.elite_size = int(0.1 * self.population_size)
-        self.tournament_size = max(2, int(0.05 * self.locations))  # Dynamic tournament size based on number of locations
+        self.tournament_size = max(2, int(0.05 * self.locations))
         self.heuristic_solutions = self.load_heuristic_solutions(heuristic_file)
         self.population = self.initialize_population()
         self.fitness_cache = {}
 
     def generate_distance_matrix(self):
-        # Generate a random distance matrix with values between 10 and 20
         matrix = np.random.normal(mu=15, scale=5, size=(self.locations, self.locations))
         
-        # Make the matrix symmetric to reflect a non-directed graph
         matrix = (matrix + matrix.T) // 2
         
-        # Set the diagonal to 0 to indicate no distance between the same location
         np.fill_diagonal(matrix, 0)
 
-        # Introduce disconnections: set some random pairs to a very high value (infinity)
         for i in range(self.locations):
             for j in range(i + 1, self.locations):
-                if random.random() < 0.3:  # 30% chance to disconnect
-                    matrix[i][j] = matrix[j][i] = np.inf  # No direct connection between i and j
+                if random.random() < 0.3:
+                    matrix[i][j] = matrix[j][i] = np.inf
 
         return matrix
 
     def fluctuate_travel_times(self):
-        # Fluctuate travel times by +/- 2 minutes for some of the edges
         for i in range(self.locations):
             for j in range(i + 1, self.locations):
-                if self.base_distance_matrix[i][j] != np.inf:  # Only fluctuate valid edges
+                if self.base_distance_matrix[i][j] != np.inf:
                     fluctuation = random.choice([-2, 2])
                     self.distance_matrix[i][j] = self.base_distance_matrix[i][j] + fluctuation
-                    self.distance_matrix[j][i] = self.distance_matrix[i][j]  # Ensure symmetry
+                    self.distance_matrix[j][i] = self.distance_matrix[i][j]
 
     def load_heuristic_solutions(self, heuristic_file):
         heuristic_solutions = {}
         with open(heuristic_file, 'r') as file:
             lines = file.readlines()
-            for i in range(0, len(lines), 2):  # Assuming each pair of lines corresponds to a scenario
+            for i in range(0, len(lines), 2):
                 match = re.search(r'(\d+) vehicles, (\d+) shifts, (\d+) locations', lines[i])
                 if match:
                     vehicles = int(match.group(1))
@@ -68,16 +63,14 @@ class GeneticAlgorithm:
         population = []
         heuristic_key = (self.vehicles, self.locations - 1)
         if (self.vehicles, self.locations - 1) in self.heuristic_solutions:
-            # Placeholder logic to incorporate heuristic-based individuals
-            for _ in range(min(10, self.population_size)):  # Assume 10 individuals based on heuristic
+            for _ in range(min(10, self.population_size)):
                 individual = {}
                 for shift in range(self.shifts):
                     shift_routes = {vehicle: [] for vehicle in range(self.vehicles)}
                     for vehicle in range(self.vehicles):
-                        # For simplicity, let's say the heuristic gave us a number of unique locations, we can create routes based on that
                         num_locations = int(self.heuristic_solutions[heuristic_key])
                         route = [0] + random.sample(range(1, self.locations), num_locations) + [0]
-                        timings = [(loc, 0) for loc in route]  # Dummy timings
+                        timings = [(loc, 0) for loc in route]
                         individual[shift] = {vehicle: (route, timings)}
                 population.append(individual)
 
@@ -94,14 +87,14 @@ class GeneticAlgorithm:
         return population
 
     def create_feasible_route(self, shift, shift_routes):
-        route = [0]  # Depot is the starting point
+        route = [0]
         current_location = 0
         current_time = 0
         route_timings = [(current_location, current_time)]
         visited_times = {0: current_time}
 
         while current_time < self.shift_lengths[shift]:
-            next_location = random.randint(1, self.locations - 1)  # Ensure it's within the valid range
+            next_location = random.randint(1, self.locations - 1)
             travel_time = self.distance_matrix[current_location][next_location]
             arrival_time = current_time + travel_time + self.patrol_time
 
@@ -120,7 +113,6 @@ class GeneticAlgorithm:
             current_location = next_location
             current_time = arrival_time
 
-        # Return to the depot at the end
         if current_location != 0 and current_time + self.distance_matrix[current_location][0] <= self.shift_lengths[shift]:
             route.append(0)
             current_time += self.distance_matrix[current_location][0]
@@ -155,7 +147,6 @@ class GeneticAlgorithm:
                 else:
                     if vehicle in parent2[shift]:
                         child[shift][vehicle] = parent2[shift][vehicle]
-            # Ensure that all vehicles are accounted for, filling in missing ones with default routes if needed
             for vehicle in range(self.vehicles):
                 if vehicle not in child[shift]:
                     child[shift][vehicle] = self.create_feasible_route(shift, {})
@@ -181,13 +172,11 @@ class GeneticAlgorithm:
         best_fitnesses = []
         best_solution = None
         best_fitness = float('-inf')
-        stagnation_count = 0  # Track how long the solution has not improved
+        stagnation_count = 0
 
         for generation in range(self.generations):
-            # Reset to the base travel times at the start of every run
             self.distance_matrix = self.base_distance_matrix.copy()
 
-            # Decide if travel times will fluctuate
             if random.random() < 0.5:
                 print("Fluctuating travel times for this run.")
                 self.fluctuate_travel_times()
@@ -215,20 +204,20 @@ class GeneticAlgorithm:
             if current_best_fitness > best_fitness:
                 best_fitness = current_best_fitness
                 best_solution = self.population[0]
-                stagnation_count = 0  # Reset stagnation counter if there's an improvement
+                stagnation_count = 0
             else:
                 stagnation_count += 1
 
             print(f"Generation {generation + 1}, Best Fitness: {current_best_fitness}, Stagnation Count: {stagnation_count}")
 
-            if stagnation_count >= 25:  # Early termination if no improvement for 10 generations
+            if stagnation_count >= 25:
                 print(f"Terminating early at generation {generation + 1} due to lack of improvement.")
                 break
 
         return best_solution, best_fitness, best_fitnesses
 
     def write_results_to_file(self, filename, vehicles, locations, shifts, best_fitness, average_fitness, execution_time=None):
-        with open(filename, 'a') as file:  # Open in append mode
+        with open(filename, 'a') as file:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             file.write(f"Timestamp: {timestamp}\n")
             file.write(f"{vehicles} vehicles, {shifts} shifts, {locations} locations => Best fitness (distinct locations visited): {best_fitness}, Average fitness: {average_fitness}\n")
@@ -246,53 +235,40 @@ class GeneticAlgorithm:
                 print("")
 
 
-# File to save all the results
 results_filename = 'GDVPS_Run_Time_Large_Instance_Vehicles_Changes_v2.txt'
 
-# Define the valid pairs of (vehicles, locations)
 VALID_PAIRS = [(15, 1000)]
 
-# Iterate over all valid pairs and run the algorithm
 for vehicles, locations in VALID_PAIRS:
-    shifts = 6  # Set number of shifts to 6
+    shifts = 6
     best_overall_solution = None
     best_overall_fitness = 0
     total_fitness_across_iterations = 0
     max_fitness_so_far = float('-inf')
 
-    # Start timing the execution
     start_time = time.time()
 
     for i in range(1):
-        ga = GeneticAlgorithm(vehicles=vehicles, locations=locations, shifts=shifts)
+        ga = GDVPS(vehicles=vehicles, locations=locations, shifts=shifts)
         best_solution, fitness, best_fitnesses = ga.run()
-
-        # Update the maximum fitness so far
         if fitness > max_fitness_so_far:
             max_fitness_so_far = fitness
 
-        # Accumulate the fitness across iterations
         total_fitness_across_iterations += fitness
 
-        # Update the best overall solution if this iteration's fitness is the best seen so far
         if fitness > best_overall_fitness:
             best_overall_fitness = fitness
             best_overall_solution = best_solution
 
-    # Calculate the average fitness across all iterations
     average_fitness_across_iterations = total_fitness_across_iterations / 1
 
-    # End timing the execution
     end_time = time.time()
     execution_time = end_time - start_time
 
-    # Write the results for this configuration to the file
     ga.write_results_to_file(results_filename, vehicles, locations, shifts, best_overall_fitness, average_fitness_across_iterations, execution_time)
 
-    # Print the details of each travel for each car in the best overall solution
     print(f"Details for {vehicles} vehicles and {locations} locations:")
     ga.print_travel_details(best_overall_solution)
     print("\n" + "-"*50 + "\n")
 
-# Inform the user that the process is complete
 print("Automated Genetic Algorithm tests for all valid pairs completed. Results saved to file.")

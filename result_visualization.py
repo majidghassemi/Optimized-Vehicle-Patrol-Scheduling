@@ -1,11 +1,9 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Load the data from the provided files
 gdvps_file = './large_instances/GDVPS_large.txt'
 ahbps_file = './large_instances/AHBPS_large.txt'
 
-# Extract relevant information from GDVPS_large.txt
 gdvps_data = []
 with open(gdvps_file, 'r') as file:
     for line in file:
@@ -15,7 +13,6 @@ with open(gdvps_file, 'r') as file:
             best_fitness = float(parts[1].split(',')[0].split(': ')[1])
             gdvps_data.append([conditions, best_fitness])
 
-# Extract relevant information from AHBPS_large.txt
 ahbps_data = []
 with open(ahbps_file, 'r') as file:
     for line in file:
@@ -25,11 +22,9 @@ with open(ahbps_file, 'r') as file:
             unique_locations = float(parts[1].split(',')[0].split(': ')[1])
             ahbps_data.append([conditions, unique_locations])
 
-# Convert to DataFrames
 gdvps_df = pd.DataFrame(gdvps_data, columns=['Conditions', 'Best Fitness'])
 ahbps_df = pd.DataFrame(ahbps_data, columns=['Conditions', 'Average Unique Locations Visited'])
 
-# Merge the data on the conditions (assume the conditions are consistent between the files)
 merged_df = pd.merge(gdvps_df, ahbps_df, on='Conditions')
 
 # Plotting the data
@@ -44,10 +39,8 @@ plt.legend()
 plt.grid(True)
 plt.tight_layout()
 
-# Save the plot to a file
 plot_file = '/comparison_plot.png'
 plt.savefig(plot_file)
 plt.show()
 
-# Output the path to the saved plot file for further use
 plot_file
