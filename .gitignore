@@ -89,9 +89,8 @@ venv.bak/
 
 # Ignoring the images
 *.png 
-.png 
-.jpg
-.jpeg
+*.png 
+*.jpg
 
 # Ignoring the results file
 *.txt
